@@ -6,39 +6,37 @@
     <title>성장 노트 - 학생</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
   </head>
   <body class="student-app">
     <main class="app-shell app-shell-mobile">
-      <header class="appbar">
-        <div class="profile-chip">
-          <div class="profile-avatar">
-            <img id="top-avatar" alt="학생 아바타">
-          </div>
-          <div>
-            <h1 id="student-name" class="appbar-title">성장 노트</h1>
-            <p id="student-subtitle" class="appbar-subtitle">학번</p>
-          </div>
-        </div>
-        <button id="refresh-button" class="icon-button" type="button" aria-label="새로고침">
-          <span class="material-symbols-outlined">refresh</span>
-        </button>
-      </header>
 
       <p id="student-status" class="status app-status"></p>
 
       <section class="tab-panel active" data-tab-panel="home">
         <section class="avatar-hero surface-card">
-          <div class="avatar-ring">
-            <img id="current-avatar" alt="현재 아바타">
+          <div class="avatar-stage">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-highest)" stroke-width="8"></circle>
+              <circle id="xp-progress-circle" cx="50" cy="50" r="45" fill="none" stroke="url(#xp-gradient)" stroke-width="8" stroke-dasharray="282.74" stroke-dashoffset="282.74" stroke-linecap="round" style="transition: stroke-dashoffset 0.6s ease;"></circle>
+              <defs>
+                <linearGradient id="xp-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#10b981"></stop>
+                  <stop offset="100%" stop-color="#6ee7b7"></stop>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="avatar-inner animate-pulse-soft">
+              <img id="current-avatar" alt="현재 아바타">
+            </div>
           </div>
           <div class="level-pill">Lv. <span id="level-value">1</span></div>
           <h2 id="home-title" class="screen-title">나의 성장</h2>
           <p class="screen-copy">칭찬을 모아 아바타와 마이펫을 성장시켜요.</p>
         </section>
 
-        <section class="xp-card surface-card">
+        <section class="xp-card surface-card card-3d">
           <div class="section-row">
             <span class="eyebrow">XP</span>
             <strong><span id="xp-value">0</span> XP</strong>
@@ -50,14 +48,14 @@
         </section>
 
         <section class="summary-grid">
-          <article class="summary-card">
+          <article class="summary-card card-3d">
             <span class="material-symbols-outlined">backpack</span>
             <div>
               <p>보유 보상</p>
               <strong id="reward-count">0</strong>
             </div>
           </article>
-          <article class="summary-card">
+          <article class="summary-card card-3d">
             <span class="material-symbols-outlined">workspace_premium</span>
             <div>
               <p>최근 칭찬</p>
@@ -66,7 +64,7 @@
           </article>
         </section>
 
-        <section class="pet-card surface-card">
+        <section class="pet-card surface-card card-3d">
           <div>
             <span class="eyebrow">MY PET</span>
             <h2>함께하는 마이펫</h2>

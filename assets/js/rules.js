@@ -92,8 +92,7 @@
     const current = student && student.current_avatar_num ? student.current_avatar_num : "1_001";
     const parts = current.split("_");
     const gender = parts[0] === "2" ? "2" : "1";
-    const level = pad3(student && student.level ? student.level : 1);
-    return `public/img/avatarLevel_IMG/levelAvatar_${gender}_${level}.png`;
+    return `public/img/avatarLibrary_IMG/avatarLibrary_${gender}_001.png`;
   }
 
   function petImagePath(pet) {

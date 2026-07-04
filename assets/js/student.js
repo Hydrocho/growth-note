@@ -20,6 +20,11 @@
     if (element) element.src = src;
   }
 
+  function displayStudentName(student) {
+    const rawName = student.nickname || student.name || "테스트";
+    return String(rawName).replace(/\s*학생$/u, "").trim() || rawName;
+  }
+
   function currentAvatarPath(student, avatars) {
     if (student.display_avatar_type === "library" && student.current_avatar_num) {
       const parts = student.current_avatar_num.split("_");
@@ -96,10 +101,10 @@
     const progress = window.GrowthNoteRules.getLevelProgress(student.total_xp);
     const avatarPath = currentAvatarPath(student, avatars);
     const petPath = window.GrowthNoteRules.petImagePath(pets[0] || { pet_id: student.current_pet_num || "000" });
-    const displayName = student.nickname || student.name || "성장 노트";
+    const displayName = displayStudentName(student);
 
     setText("student-name", displayName);
-    setText("student-subtitle", student.school_id || "");
+    setText("student-id-inline", student.school_id || "");
     setText("home-title", `${displayName}의 성장`);
     setText("level-value", progress.currentLevel);
     setText("xp-value", Number(student.total_xp || 0).toLocaleString("ko-KR"));
@@ -111,8 +116,13 @@
     setText("settings-mode", isDemoStudent ? "데모" : "일반");
 
     document.getElementById("level-progress").style.width = `${progress.percent}%`;
+    const circle = document.getElementById("xp-progress-circle");
+    if (circle) {
+      const circumference = 282.74;
+      const offset = circumference * (1 - (progress.percent || 0) / 100);
+      circle.style.strokeDashoffset = offset;
+    }
     setImage("current-avatar", avatarPath);
-    setImage("top-avatar", avatarPath);
     setImage("current-pet", petPath);
 
     renderCollection("avatar-grid", avatars, window.GrowthNoteRules.avatarImagePath, "아직 획득한 아바타가 없습니다.");
@@ -155,7 +165,7 @@
 
     if (isDemoStudent) {
       renderDashboard(demoModel());
-      setStatus("테스트 학생으로 로그인했습니다. Supabase 저장은 사용하지 않습니다.");
+      setStatus("");
       return;
     }
 
@@ -206,14 +216,21 @@
   }
 
   document.querySelectorAll("[data-tab-target]").forEach((button) => {
-    button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
+    button.addEventListener("click", () => {
+      activateTab(button.dataset.tabTarget);
+      loadDashboard();
+    });
   });
 
   document.querySelectorAll("[data-collection-target]").forEach((button) => {
     button.addEventListener("click", () => activateCollection(button.dataset.collectionTarget));
   });
 
-  document.getElementById("refresh-button").addEventListener("click", loadDashboard);
+  const refreshBtn = document.getElementById("refresh-button");
+  if (refreshBtn) {
+    refreshBtn.addEventListener("click", loadDashboard);
+  }
+
   document.getElementById("logout-button").addEventListener("click", function () {
     sessionStorage.removeItem("growth-note-student-id");
     sessionStorage.removeItem("growth-note-demo-student");
