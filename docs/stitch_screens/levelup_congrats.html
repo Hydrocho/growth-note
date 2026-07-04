@@ -1,0 +1,228 @@
+<!DOCTYPE html><html class="light" lang="ko"><head><meta charset="utf-8"><meta content="width=device-width, initial-scale=1.0" name="viewport"><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=block" rel="stylesheet"><script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script><script id="tailwind-config">try{
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-container": "#5c2400",
+                      "background": "#f8f9ff",
+                      "on-primary": "#ffffff",
+                      "on-tertiary-container": "#f5fff6",
+                      "on-background": "#0b1c30",
+                      "tertiary-fixed-dim": "#4edea3",
+                      "primary-fixed-dim": "#cbd5e1",
+                      "primary": "#475569",
+                      "surface-container-lowest": "#ffffff",
+                      "on-surface": "#0f172a",
+                      "error": "#ba1a1a",
+                      "on-error": "#ffffff",
+                      "surface-tint": "#475569",
+                      "on-secondary-fixed-variant": "#783200",
+                      "tertiary-fixed": "#6ffbbe",
+                      "surface-container-low": "#f1f5f9",
+                      "on-secondary-fixed": "#341100",
+                      "secondary-fixed": "#ffdbca",
+                      "on-surface-variant": "#64748b",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed-variant": "#334155",
+                      "inverse-on-surface": "#f8fafc",
+                      "outline": "#94a3b8",
+                      "surface-dim": "#cbd5e1",
+                      "primary-fixed": "#e2e8f0",
+                      "surface-container-highest": "#e2e8f0",
+                      "on-primary-container": "#f8fafc",
+                      "outline-variant": "#cbd5e1",
+                      "on-error-container": "#93000a",
+                      "surface-variant": "#f1f5f9",
+                      "primary-container": "#64748b",
+                      "secondary": "#9d4300",
+                      "surface-container-high": "#e2e8f0",
+                      "secondary-fixed-dim": "#ffb690",
+                      "on-tertiary-fixed-variant": "#005236",
+                      "inverse-primary": "#cbd5e1",
+                      "surface": "#f8fafc",
+                      "secondary-container": "#fd761a",
+                      "tertiary-container": "#00855b",
+                      "tertiary": "#006947",
+                      "error-container": "#ffdad6",
+                      "inverse-surface": "#1e293b",
+                      "on-primary-fixed": "#0f172a",
+                      "surface-bright": "#f8fafc",
+                      "surface-container": "#f1f5f9",
+                      "on-tertiary": "#ffffff",
+                      "on-tertiary-fixed": "#002113"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "radius-inner": "8px",
+                      "gutter": "16px",
+                      "unit": "8px",
+                      "radius-outer": "24px",
+                      "container-padding": "24px"
+              },
+              "fontFamily": {
+                      "headline-lg": ["Plus Jakarta Sans"],
+                      "body-md": ["Plus Jakarta Sans"],
+                      "body-lg": ["Plus Jakarta Sans"],
+                      "display-lg": ["Plus Jakarta Sans"],
+                      "headline-md": ["Plus Jakarta Sans"],
+                      "headline-lg-mobile": ["Plus Jakarta Sans"],
+                      "caption": ["Plus Jakarta Sans"],
+                      "label-md": ["Plus Jakarta Sans"]
+              },
+              "fontSize": {
+                      "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+                      "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "500"}],
+                      "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "800"}],
+                      "headline-md": ["20px", {"lineHeight": "28px", "fontWeight": "700"}],
+                      "headline-lg-mobile": ["24px", {"lineHeight": "32px", "fontWeight": "700"}],
+                      "caption": ["12px", {"lineHeight": "16px", "fontWeight": "500"}],
+                      "label-md": ["14px", {"lineHeight": "20px", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    }catch(_e){}</script></head><body class="text-on-surface font-body-md overflow-hidden bg-surface-container-low">
+    <!-- Underlying Dashboard (Blurred) -->
+    <main class="min-h-screen p-container-padding flex flex-col gap-6 filter blur-md pointer-events-none">
+        <header class="flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="w-12 h-12 rounded-full bg-primary-container shadow-lg flex items-center justify-center">
+                    <span class="material-symbols-outlined text-white">person</span>
+                </div>
+                <div>
+                    <h1 class="font-headline-md text-headline-md">Avatar Quest</h1>
+                    <p class="text-on-surface-variant font-label-md">Current Quest: Algebra Mastery</p>
+                </div>
+            </div>
+        </header>
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="col-span-2 bg-white rounded-xl p-6 shadow-sm border border-primary/5 h-96"></div>
+            <div class="bg-white rounded-xl p-6 shadow-sm border border-primary/5 h-96"></div>
+        </section>
+    </main>
+
+    <!-- Fullscreen Level Up Overlay -->
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-on-background/40 backdrop-blur-md" id="level-up-screen">
+        <!-- Fireworks/Sparkles Animation Layer -->
+        <div class="absolute inset-0 overflow-hidden pointer-events-none"></div>
+        <canvas class="confetti-canvas" id="confetti"></canvas>
+        
+        <!-- Content Card -->
+        <div class="relative w-full max-w-lg bg-surface-container-lowest rounded-radius-outer p-unit shadow-2xl flex flex-col items-center text-center overflow-hidden border border-white/20 animate-float">
+            <!-- Radiating Background Gradient -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/10 rounded-full blur-[100px] -z-10"></div>
+            
+            <!-- Header Decor -->
+            <div class="pt-10 pb-4">
+                <div class="inline-flex items-center justify-center bg-secondary-container text-on-secondary-container px-6 py-2 rounded-full font-label-md mb-6 shadow-[0_4px_0_0_#9d4300] transform -rotate-3">
+                    <span class="material-symbols-outlined mr-2">stars</span>
+                    ACHIEVEMENT UNLOCKED
+                </div>
+                <h1 class="font-display-lg text-display-lg text-primary mb-2 drop-shadow-sm tracking-tighter uppercase">
+                    LEVEL UP!
+                </h1>
+            </div>
+
+            <!-- New Level Visual -->
+            <div class="relative w-48 h-48 mb-8">
+                <div class="absolute inset-0 bg-primary/10 rounded-full animate-ping opacity-25"></div>
+                <div class="relative w-full h-full flex items-center justify-center bg-white rounded-full border-8 border-primary shadow-xl">
+                    <span class="text-primary font-display-lg text-6xl font-extrabold italic">16</span>
+                    <div class="absolute -bottom-4 bg-primary text-on-primary px-4 py-1 rounded-full text-label-md font-bold shadow-lg">
+                        LEVEL
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rewards Section -->
+            <div class="w-full bg-surface-container-high rounded-xl p-6 mb-8"><p class="font-label-md text-on-surface-variant uppercase tracking-widest mb-4">REWARDS EARNED</p>
+<div class="flex justify-center gap-6">
+<!-- Item Reward -->
+<div class="reward-card group flex flex-col items-center">
+<div class="w-20 h-20 bg-white squircle shadow-md border border-primary/10 flex items-center justify-center mb-2 overflow-hidden">
+<div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBB4Q0g194AzpDd7ZD-BcIGJwVneRRRUsI5E6-edjOiyq4TTQy_CY7WggdbP_9hO6FNe0VMKonXfUonPgxTu1SR884pWi2rvqqYLETneDPsNoKjKg7IOhXCTQC_LUBxIYkCIvyO9SQqA_Fi9RYMrQeHMYcYbNk24f9Tzv6QaerniwVLNJJRIaKOioEzppuV5x5fat77qTKLs99TvabggESivvF1mLN_dpmcsw1PYIwAeqR8VVpDgAA')"></div>
+</div>
+<span class="text-label-md font-bold text-on-surface">Royal Hat</span>
+</div>
+<!-- Coin Reward -->
+<div class="reward-card group flex flex-col items-center">
+<div class="w-20 h-20 bg-white squircle shadow-md border border-primary/10 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary text-5xl" style="font-variation-settings: 'FILL' 1;">monetization_on</span>
+</div>
+<span class="text-label-md font-bold text-on-surface">+500 XP</span>
+</div>
+<!-- Bonus Reward -->
+<div class="reward-card group flex flex-col items-center">
+<div class="w-20 h-20 bg-white squircle shadow-md border border-primary/10 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary text-5xl" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+</div>
+<span class="text-label-md font-bold text-on-surface">Scholar Badge</span>
+</div>
+</div></div>
+
+            <!-- Footer Action -->
+            <button class="w-full py-4 bg-primary text-on-primary font-headline-md rounded-xl shadow-[0_4px_0_0_#334155] hover:scale-105 active:scale-95 active:shadow-none transition-all duration-200 mb-4 flex items-center justify-center gap-2" onclick="dismissLevelUp()">
+                확인
+                <span class="material-symbols-outlined">arrow_forward</span>
+            </button>
+            <p class="text-caption text-on-surface-variant italic mb-6">4,250 more XP to Level 17</p>
+        </div>
+    </div>
+
+    <!-- Script for Confetti and Micro-interactions -->
+    <script>
+        function createConfetti() {
+            const canvas = document.getElementById('confetti');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            let particles = [];
+            const colors = ['#475569', '#fd761a', '#94a3b8', '#ffb690', '#cbd5e1'];
+
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height - canvas.height,
+                    size: Math.random() * 8 + 4,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    speed: Math.random() * 3 + 2,
+                    angle: Math.random() * 360,
+                    spin: Math.random() * 0.2 - 0.1
+                });
+            }
+
+            function draw() {
+                if (!document.getElementById('confetti')) return;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach(p => {
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.angle * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                    ctx.restore();
+
+                    p.y += p.speed;
+                    p.angle += p.spin * 10;
+                    if (p.y > canvas.height) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+                requestAnimationFrame(draw);
+            }
+            draw();
+        }
+
+        function dismissLevelUp() {
+            const screen = document.getElementById('level-up-screen');
+            screen.style.</script></body></html>
