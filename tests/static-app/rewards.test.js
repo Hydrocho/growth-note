@@ -160,7 +160,7 @@ function createMockClient({ student, ownedAvatars = [], ownedPets = [] }) {
   const levelUpMock = createMockClient({
     student: {
       id: "student-2",
-      total_xp: 100,
+      total_xp: 90,
       level: 1
     }
   });
@@ -180,12 +180,11 @@ function createMockClient({ student, ownedAvatars = [], ownedPets = [] }) {
 
   assert.strictEqual(levelUpResult.oldLevel, 1);
   assert.strictEqual(levelUpResult.newLevel, 2);
-  assert(levelUpResult.reward, "level-up praise should include a reward");
-  assert.strictEqual(levelUpResult.reward.type, "avatar");
-  assert.strictEqual(levelUpMock.operations.avatarInserts.length, 1);
+  assert.strictEqual(levelUpResult.reward, null);
+  assert.strictEqual(levelUpMock.operations.avatarInserts.length, 0);
   assert.strictEqual(levelUpMock.operations.petInserts.length, 0);
-  assert.strictEqual(levelUpMock.operations.studentUpdates[0].current_avatar_num, "1_001");
-  assert.strictEqual(levelUpMock.operations.studentUpdates[0].display_avatar_type, "library");
+  assert.strictEqual(levelUpMock.operations.studentUpdates[0].total_xp, 100);
+  assert.strictEqual(levelUpMock.operations.studentUpdates[0].level, 2);
 })();
 
 console.log("rewards.test.js passed");

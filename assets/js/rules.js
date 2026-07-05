@@ -14,8 +14,7 @@
 
     for (let level = 1; level <= 50; level += 1) {
       levels.push({ level, threshold: currentXP });
-      const increment = level === 1 ? 105 : Math.floor((level - 1) / 5) * 3 + 10;
-      currentXP += increment;
+      currentXP += 100;
     }
 
     return levels;

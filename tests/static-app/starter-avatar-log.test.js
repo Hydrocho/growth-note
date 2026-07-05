@@ -14,7 +14,7 @@ for (const copy of [
   'type: "starter_avatar"',
   'category: "starter_avatar"',
   'description: "첫 아바타 선택"',
-  'xp_change: 0',
+  'xp_change: 10',
   'reward_type: "avatar"',
   'reward_id: `${selectedGender}_${avatarId}`'
 ]) {

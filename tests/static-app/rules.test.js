@@ -5,13 +5,13 @@ global.window = global;
 require("../../assets/js/rules.js");
 
 assert.strictEqual(global.GrowthNoteRules.calculateLevel(0), 1);
-assert.strictEqual(global.GrowthNoteRules.calculateLevel(104), 1);
-assert.strictEqual(global.GrowthNoteRules.calculateLevel(105), 2);
+assert.strictEqual(global.GrowthNoteRules.calculateLevel(99), 1);
+assert.strictEqual(global.GrowthNoteRules.calculateLevel(100), 2);
 
 const progress = global.GrowthNoteRules.getLevelProgress(105);
 assert.strictEqual(progress.currentLevel, 2);
 assert.strictEqual(progress.currentXp, 105);
-assert.strictEqual(progress.percent, 0);
+assert.strictEqual(progress.percent, 5);
 
 assert.strictEqual(global.GrowthNoteRules.PRAISE_ITEMS.length, 4);
 assert.strictEqual(global.GrowthNoteRules.AVATAR_POOL.length, 200);

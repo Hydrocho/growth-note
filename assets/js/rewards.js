@@ -79,26 +79,12 @@
     const oldLevel = Number(student.level || rules.calculateLevel(oldXp));
     const newXp = oldXp + xpChange;
     const newLevel = rules.calculateLevel(newXp);
-    const reward = newLevel > oldLevel
-      ? selectNextReward({
-        ownedAvatars: ownedAvatars || [],
-        ownedPets: ownedPets || []
-      })
-      : null;
+    const reward = null;
 
     const studentUpdate = {
       total_xp: newXp,
       level: newLevel
     };
-
-    if (reward && reward.type === "avatar") {
-      studentUpdate.current_avatar_num = `${reward.item.gender}_${reward.item.avatar_id}`;
-      studentUpdate.display_avatar_type = "library";
-    }
-
-    if (reward && reward.type === "pet") {
-      studentUpdate.current_pet_num = reward.item.pet_id;
-    }
 
     const { error: updateError } = await client
       .from("students")

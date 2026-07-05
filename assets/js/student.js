@@ -5,6 +5,8 @@
   const status = document.getElementById("student-status");
   let dashboardModel = null;
   let dailyDrawInProgress = false;
+  let avatarDrawInProgress = false;
+  let realtimeChannel = null;
 
   function setStatus(message, isError) {
     status.textContent = message || "";
@@ -250,6 +252,36 @@
     if (buttonText) buttonText.textContent = dailyDrawInProgress ? "진행 중" : "뽑기";
   }
 
+  function renderAvatarDraw(student, avatars) {
+    const card = document.getElementById("avatar-draw-card");
+    const button = document.getElementById("avatar-draw-button");
+    const statusText = document.getElementById("avatar-draw-status");
+    if (!card || !button || !statusText) return;
+
+    const buttonText = button.querySelector("span:last-child");
+    const allowedCount = Math.floor((student.total_xp || 0) / 10);
+    const ownedCount = (avatars || []).length;
+    const availableDraws = Math.max(0, allowedCount - ownedCount);
+
+    const hasEveryAvatar = (avatars || []).length >= window.GrowthNoteRules.AVATAR_POOL.length;
+
+    button.disabled = availableDraws <= 0 || hasEveryAvatar || avatarDrawInProgress;
+
+    if (hasEveryAvatar) {
+      statusText.textContent = "모든 아바타를 모았어요.";
+      if (buttonText) buttonText.textContent = "완료";
+      return;
+    }
+
+    if (availableDraws > 0) {
+      statusText.innerHTML = `아바타 상자를 <strong>${availableDraws}개</strong> 더 열 수 있어요!`;
+      if (buttonText) buttonText.textContent = avatarDrawInProgress ? "진행 중" : "상자 열기";
+    } else {
+      statusText.textContent = "칭찬 점수 10점마다 아바타를 뽑을 수 있어요.";
+      if (buttonText) buttonText.textContent = "잠김";
+    }
+  }
+
   function renderDashboard(model) {
     dashboardModel = model;
     const student = model.student;
@@ -315,6 +347,7 @@
     renderCollection("pet-grid", pets, "pet");
     renderLogs(logs);
     renderDailyPetDraw(model.dailyDraws || [], pets);
+    renderAvatarDraw(student, avatars);
   }
 
   async function loadDashboard() {
@@ -358,6 +391,35 @@
     }
   }
 
+  function setupRealtimeSubscription() {
+    if (realtimeChannel) {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    }
+
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+      realtimeChannel = client
+        .channel("student-realtime-changes")
+        .on(
+          "postgres_changes",
+          {
+            event: "UPDATE",
+            schema: "public",
+            table: "students"
+          },
+          (payload) => {
+            if (payload.new && payload.new.id === studentId) {
+              loadDashboard();
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.error("Realtime subscription failed:", e);
+    }
+  }
+
   async function grantStarterAvatar(gender) {
     const selectedGender = String(gender) === "2" ? "2" : "1";
     const avatarId = "001";
@@ -394,7 +456,9 @@
         .from("students")
         .update({
           current_avatar_num: `${selectedGender}_${avatarId}`,
-          display_avatar_type: "library"
+          display_avatar_type: "library",
+          total_xp: 10,
+          level: 1
         })
         .eq("id", studentId);
 
@@ -405,7 +469,7 @@
         type: "starter_avatar",
         category: "starter_avatar",
         description: "첫 아바타 선택",
-        xp_change: 0,
+        xp_change: 10,
         reward_type: "avatar",
         reward_id: `${selectedGender}_${avatarId}`
       });
@@ -570,6 +634,75 @@
     }
   }
 
+  async function drawAvatar() {
+    if (avatarDrawInProgress || !dashboardModel) return;
+
+    const student = dashboardModel.student;
+    const avatars = dashboardModel.avatars || [];
+
+    const allowedCount = Math.floor((student.total_xp || 0) / 10);
+    const ownedCount = avatars.length;
+    const availableDraws = Math.max(0, allowedCount - ownedCount);
+
+    if (availableDraws <= 0) return;
+
+    const reward = window.GrowthNoteRewards.selectNextReward({ ownedAvatars: avatars });
+    if (!reward) {
+      setStatus("모든 아바타를 이미 모았어요.");
+      return;
+    }
+
+    avatarDrawInProgress = true;
+    renderAvatarDraw(student, avatars);
+
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+
+      const { error: avatarError } = await client.from("unlocked_avatars").insert({
+        student_id: studentId,
+        avatar_id: reward.item.avatar_id,
+        gender: reward.item.gender,
+        quantity: 1
+      });
+      if (avatarError) throw avatarError;
+
+      const { error: updateError } = await client
+        .from("students")
+        .update({
+          current_avatar_num: `${reward.item.gender}_${reward.item.avatar_id}`,
+          display_avatar_type: "library"
+        })
+        .eq("id", studentId);
+      if (updateError) throw updateError;
+
+      const { error: logError } = await client.from("student_logs").insert({
+        student_id: studentId,
+        type: "avatar_draw",
+        category: "avatar_draw",
+        description: "아바타 상자 열기 보상",
+        xp_change: 0,
+        reward_type: "avatar",
+        reward_id: `${reward.item.gender}_${reward.item.avatar_id}`
+      });
+      if (logError) throw logError;
+
+      openRewardDrawModal({
+        type: "avatar",
+        title: "새로운 아바타",
+        copy: "상자를 두드리면 더 빨리 열려요.",
+        resultTitle: `아바타 해금!`,
+        resultCopy: "새로운 아바타가 보관함에 추가되었습니다.",
+        imageSrc: window.GrowthNoteRules.avatarImagePath(reward.item),
+        onClose: loadDashboard
+      });
+    } catch (error) {
+      setStatus("아바타 뽑기 오류: " + error.message, true);
+    } finally {
+      avatarDrawInProgress = false;
+      renderAvatarDraw(dashboardModel.student, dashboardModel.avatars || []);
+    }
+  }
+
   function activateTab(tabName) {
     document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
       panel.classList.toggle("active", panel.dataset.tabPanel === tabName);
@@ -612,6 +745,11 @@
   const dailyPetDrawButton = document.getElementById("daily-pet-draw-button");
   if (dailyPetDrawButton) {
     dailyPetDrawButton.addEventListener("click", drawDailyPet);
+  }
+
+  const avatarDrawButton = document.getElementById("avatar-draw-button");
+  if (avatarDrawButton) {
+    avatarDrawButton.addEventListener("click", drawAvatar);
   }
 
   // Handle student data reset
@@ -720,8 +858,13 @@
   document.getElementById("logout-button").addEventListener("click", function () {
     sessionStorage.removeItem("growth-note-student-id");
     sessionStorage.removeItem("growth-note-demo-student");
+    if (realtimeChannel) {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    }
     window.location.href = "student-login.html";
   });
 
   loadDashboard();
+  setupRealtimeSubscription();
 })();

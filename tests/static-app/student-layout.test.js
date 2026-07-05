@@ -21,7 +21,7 @@ assert(!html.includes("占?"), "student.html should not contain replacement char
 for (const copy of [
   "id=\"level-guide-title\"",
   "Lv.2",
-  "105 XP"
+  "100 XP"
 ]) {
   assert(html.includes(copy), `student.html should explain level-up system: ${copy}`);
 }
