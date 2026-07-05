@@ -36,6 +36,13 @@
 
         <!-- 회원가입 폼 (초기 hidden) -->
         <form id="admin-register-form" class="form-stack" style="margin-top: 24px; display: none;">
+          <!-- 최초 가입 마스터 알림 박스 -->
+          <div id="first-signup-warning-box" style="background: #fffbeb; border-left: 4px solid #f59e0b; color: #b45309; font-size: 12.5px; margin-bottom: 12px; padding: 14px; border-radius: 6px; line-height: 1.6; display: none;">
+            <strong>⭐ 최초 가입 교사 안내 (마스터 계정)</strong><br>
+            현재 등록된 교사가 없으므로, 지금 가입하는 계정이 전체 시스템을 총괄하는 <strong>최고 관리자(Master)</strong>로 지정됩니다.<br><br>
+            이메일 주소와 비밀번호를 잃어버리는 경우 복구가 대단히 어려우니 안전하게 기록 및 보관해 주세요!
+          </div>
+
           <div class="field">
             <label for="admin-register-email">이메일 주소</label>
             <input id="admin-register-email" class="input" type="email" placeholder="email@school.kr" required>
@@ -48,7 +55,7 @@
             <label for="admin-register-password-confirm">비밀번호 확인</label>
             <input id="admin-register-password-confirm" class="input" type="password" placeholder="비밀번호 확인" required minlength="6">
           </div>
-          <button class="button" type="submit" style="margin-top: 18px; background: var(--primary);">
+          <button class="button full-width" type="submit" style="margin-top: 18px; background: var(--primary);">
             <span class="material-symbols-outlined">person_add</span>
             교사용 계정 회원가입
           </button>

@@ -89,10 +89,12 @@
   const adminGateSubtitle = document.getElementById("admin-gate-subtitle");
 
   let students = [];
-  let teacherRolesList = [];
+  let teacherRolesList = [];
+
   let pendingTeachersList = [];
   let isPraiseOnly = false;
   let isUnauthorized = false;
+  let currentLoggedInEmail = "";
 
   // 화이트리스트 교사 권한 검사 함수
   async function checkTeacherPermissions(client, email) {
@@ -1082,7 +1084,17 @@
       btnDelete.className = "button danger";
       btnDelete.textContent = "권한 삭제";
       btnDelete.type = "button";
-      btnDelete.addEventListener("click", () => deleteTeacherRole(role.email));
+      
+      // 본인 계정은 권한 삭제 불가능하도록 비활성화 처리
+      if (role.email.toLowerCase() === currentLoggedInEmail.toLowerCase()) {
+        btnDelete.disabled = true;
+        btnDelete.style.opacity = "0.5";
+        btnDelete.style.cursor = "not-allowed";
+        btnDelete.title = "본인의 권한은 삭제할 수 없습니다.";
+      } else {
+        btnDelete.addEventListener("click", () => deleteTeacherRole(role.email));
+      }
+      
       tdActions.appendChild(btnDelete);
       tr.appendChild(tdActions);
 
@@ -1183,6 +1195,11 @@
 
   // Delete Teacher Role
   async function deleteTeacherRole(email) {
+    if (email.toLowerCase() === currentLoggedInEmail.toLowerCase()) {
+      alert("본인의 권한은 삭제할 수 없습니다.");
+      return;
+    }
+
     if (!window.confirm(`${email} 교사의 지정 권한을 삭제하시겠습니까?\n(삭제 시 해당 이메일은 최고 관리자 권한으로 환원됩니다.)`)) {
       return;
     }
@@ -1262,6 +1279,7 @@
 
       // 권한 조회 및 UI 반영
       const userEmail = email.toLowerCase();
+      currentLoggedInEmail = userEmail;
       await checkTeacherPermissions(client, userEmail);
 
       if (isUnauthorized) {
@@ -1400,20 +1418,33 @@
 
   // Admin Login/Register toggle event listeners
   if (btnToggleAdminRegister) {
-    btnToggleAdminRegister.addEventListener("click", () => {
+    btnToggleAdminRegister.addEventListener("click", async () => {
       adminForm.style.display = "none";
-      adminRegisterForm.style.display = "block";
+      adminRegisterForm.style.display = "grid";
       btnToggleAdminRegister.style.display = "none";
       btnToggleAdminLogin.style.display = "block";
       adminGateSubtitle.textContent = "교사용 이메일과 비밀번호로 신규 계정을 등록합니다.";
       setStatus(adminStatus, "");
+
+      // 최초 마스터 가입 여부 확인
+      try {
+        const client = window.GrowthNoteSupabase.getClient();
+        const { data: roles } = await client.from("teacher_roles").select("email");
+        const isTableEmpty = !roles || roles.length === 0;
+        const warningBox = document.getElementById("first-signup-warning-box");
+        if (warningBox) {
+          warningBox.style.display = isTableEmpty ? "block" : "none";
+        }
+      } catch (err) {
+        console.error("Failed to check if roles is empty:", err);
+      }
     });
   }
 
   if (btnToggleAdminLogin) {
     btnToggleAdminLogin.addEventListener("click", () => {
       adminRegisterForm.style.display = "none";
-      adminForm.style.display = "block";
+      adminForm.style.display = "grid";
       btnToggleAdminLogin.style.display = "none";
       btnToggleAdminRegister.style.display = "block";
       adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
@@ -1449,6 +1480,7 @@
 
         if (data && data.session) {
           const userEmail = email.toLowerCase();
+          currentLoggedInEmail = userEmail;
           await checkTeacherPermissions(client, userEmail);
 
           if (isUnauthorized) {
@@ -1456,12 +1488,17 @@
             await client.auth.signOut();
             adminRegisterForm.reset();
             adminRegisterForm.style.display = "none";
-            adminForm.style.display = "block";
+            adminForm.style.display = "grid";
             btnToggleAdminLogin.style.display = "none";
             btnToggleAdminRegister.style.display = "block";
             adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
             setBusy(false);
             return;
+          }
+
+          // 최초 가입 어드민 안내 팝업창
+          if (!isPraiseOnly && !isUnauthorized) {
+            alert("축하합니다! 최초 가입 교사로서 최고 관리자(Master) 권한이 자동으로 부여되었습니다.\n\n이메일 주소와 비밀번호를 분실하는 경우 전체 시스템 권한 복구가 대단히 어려우니, 반드시 계정 정보를 안전하게 보관해 주시기 바랍니다!");
           }
 
           if (isPraiseOnly) {
@@ -1488,7 +1525,7 @@
           setStatus(adminStatus, "회원가입 요청 성공! 인증 이메일을 확인하거나 로그인해 주세요.", false);
           adminRegisterForm.reset();
           adminRegisterForm.style.display = "none";
-          adminForm.style.display = "block";
+          adminForm.style.display = "grid";
           btnToggleAdminLogin.style.display = "none";
           btnToggleAdminRegister.style.display = "block";
           adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
@@ -1514,6 +1551,7 @@
       const client = window.GrowthNoteSupabase.getClient();
       await client.auth.signOut();
       adminForm.reset();
+      currentLoggedInEmail = "";
       teacherApp.classList.add("hidden");
       adminGate.classList.remove("hidden");
       setStatus(adminStatus, "로그아웃 되었습니다.");
@@ -1541,6 +1579,7 @@
         
         // 권한 조회 및 UI 반영
         const userEmail = session.user.email;
+        currentLoggedInEmail = userEmail.toLowerCase();
         await checkTeacherPermissions(client, userEmail);
 
         if (isUnauthorized) {
