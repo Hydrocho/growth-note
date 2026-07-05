@@ -7,12 +7,19 @@ const css = fs.readFileSync(path.join(__dirname, "../../assets/css/style.css"), 
 for (const copy of [
   "#avatar-grid .collection-item img",
   "#avatar-grid .collection-item.unlocked img",
-  "max-width: 64%",
-  "max-height: 64%",
   "width: auto",
-  "height: auto"
+  "height: auto",
+  "max-width: none",
+  "max-height: none",
+  "transform: scale(0.22)",
+  "transform-origin: center"
 ]) {
-  assert(css.includes(copy), `avatar collection images should use smaller proportional sizing: ${copy}`);
+  assert(css.includes(copy), `avatar collection images should use uniform source-ratio scaling: ${copy}`);
 }
+
+assert(
+  !css.includes("#avatar-grid .collection-item img,\n#avatar-grid .collection-item.unlocked img {\n  width: auto;\n  height: auto;\n  max-width: 64%;"),
+  "avatar collection images should not use max-size based fitting for the scaled avatar rule"
+);
 
 console.log("collection-avatar-size.test.js passed");
