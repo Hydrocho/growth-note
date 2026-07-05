@@ -3,6 +3,8 @@
 
   const studentId = sessionStorage.getItem("growth-note-student-id");
   const status = document.getElementById("student-status");
+  let dashboardModel = null;
+  let dailyDrawInProgress = false;
 
   function setStatus(message, isError) {
     status.textContent = message || "";
@@ -21,6 +23,28 @@
 
   function displayStudentName(student) {
     return student.school_id || "";
+  }
+
+  function todayKoreaDateString(now) {
+    const date = now || new Date();
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    }).formatToParts(date);
+    const values = {};
+    parts.forEach((part) => {
+      if (part.type !== "literal") values[part.type] = part.value;
+    });
+    return `${values.year}-${values.month}-${values.day}`;
+  }
+
+  function isDuplicateDailyDrawError(error) {
+    return error && (
+      error.code === "23505" ||
+      String(error.message || "").includes("daily_pet_draws_student_id_draw_date_key")
+    );
   }
 
   function setStarterAvatarModalOpen(isOpen) {
@@ -195,7 +219,39 @@
     }
   }
 
+  function renderDailyPetDraw(draws, pets) {
+    const card = document.getElementById("daily-pet-draw-card");
+    const button = document.getElementById("daily-pet-draw-button");
+    const statusText = document.getElementById("daily-pet-draw-status");
+    if (!card || !button || !statusText) return;
+
+    const buttonText = button.querySelector("span:last-child");
+    const hasDrawnToday = Boolean(draws && draws.length);
+    const hasEveryPet = (pets || []).length >= window.GrowthNoteRules.PET_POOL.length;
+
+    button.disabled = hasDrawnToday || hasEveryPet || dailyDrawInProgress;
+
+    if (hasEveryPet) {
+      card.dataset.dailyDrawState = "complete";
+      statusText.textContent = "모든 마이펫을 모았어요.";
+      if (buttonText) buttonText.textContent = "완료";
+      return;
+    }
+
+    if (hasDrawnToday) {
+      card.dataset.dailyDrawState = "done";
+      statusText.textContent = "오늘의 마이펫 뽑기를 완료했어요. 내일 다시 만나요.";
+      if (buttonText) buttonText.textContent = "완료";
+      return;
+    }
+
+    card.dataset.dailyDrawState = "ready";
+    statusText.textContent = "하루에 한 번 새로운 마이펫을 직접 뽑을 수 있어요.";
+    if (buttonText) buttonText.textContent = dailyDrawInProgress ? "진행 중" : "뽑기";
+  }
+
   function renderDashboard(model) {
+    dashboardModel = model;
     const student = model.student;
     const avatars = model.avatars;
     const pets = model.pets;
@@ -258,6 +314,7 @@
     renderCollection("avatar-grid", avatars, "avatar");
     renderCollection("pet-grid", pets, "pet");
     renderLogs(logs);
+    renderDailyPetDraw(model.dailyDraws || [], pets);
   }
 
   async function loadDashboard() {
@@ -269,24 +326,28 @@
     try {
       setStatus("데이터를 불러오는 중입니다.");
       const client = window.GrowthNoteSupabase.getClient();
-      const [{ data: student, error: studentError }, avatarsResult, petsResult, logsResult] =
+      const today = todayKoreaDateString();
+      const [{ data: student, error: studentError }, avatarsResult, petsResult, logsResult, dailyDrawsResult] =
         await Promise.all([
           client.from("students").select("*").eq("id", studentId).single(),
           client.from("unlocked_avatars").select("avatar_id, gender, unlocked_at").eq("student_id", studentId).order("unlocked_at", { ascending: false }),
           client.from("unlocked_pets").select("pet_id, unlocked_at").eq("student_id", studentId).order("unlocked_at", { ascending: false }),
-          client.from("student_logs").select("*").eq("student_id", studentId).order("created_at", { ascending: false }).limit(10)
+          client.from("student_logs").select("*").eq("student_id", studentId).order("created_at", { ascending: false }).limit(10),
+          client.from("daily_pet_draws").select("pet_id, draw_date, created_at").eq("student_id", studentId).eq("draw_date", today)
         ]);
 
       if (studentError) throw studentError;
       if (avatarsResult.error) throw avatarsResult.error;
       if (petsResult.error) throw petsResult.error;
       if (logsResult.error) throw logsResult.error;
+      if (dailyDrawsResult.error) throw dailyDrawsResult.error;
 
       renderDashboard({
         student,
         avatars: avatarsResult.data || [],
         pets: petsResult.data || [],
-        logs: logsResult.data || []
+        logs: logsResult.data || [],
+        dailyDraws: dailyDrawsResult.data || []
       });
       setStarterAvatarModalOpen(
         window.GrowthNoteRules.needsStarterAvatarGift(avatarsResult.data || [])
@@ -347,6 +408,146 @@
     }
   }
 
+  function openRewardDrawModal(options) {
+    const modal = document.getElementById("reward-draw-modal");
+    const title = document.getElementById("reward-draw-title");
+    const copy = document.getElementById("reward-draw-copy");
+    const closeButton = document.getElementById("reward-draw-close");
+    const box = document.getElementById("reward-draw-box");
+    const count = document.getElementById("reward-draw-count");
+    const result = document.getElementById("reward-draw-result");
+    const resultImage = document.getElementById("reward-draw-result-image");
+    const resultTitle = document.getElementById("reward-draw-result-title");
+    const resultCopy = document.getElementById("reward-draw-result-copy");
+    if (!modal || !box || !count || !result || !resultImage || !resultTitle || !resultCopy) return;
+
+    let remaining = 10;
+    let timerId = null;
+    let isRevealed = false;
+
+    function renderCount() {
+      count.textContent = String(Math.max(0, remaining));
+      box.classList.remove("tap-pop");
+      window.requestAnimationFrame(() => box.classList.add("tap-pop"));
+    }
+
+    function reveal() {
+      if (isRevealed) return;
+      isRevealed = true;
+      if (timerId) window.clearInterval(timerId);
+      count.textContent = "0";
+      box.classList.add("opened");
+      box.disabled = true;
+      result.hidden = false;
+      resultImage.src = options.imageSrc;
+      resultImage.alt = options.resultTitle || "";
+      resultTitle.textContent = options.resultTitle || "";
+      resultCopy.textContent = options.resultCopy || "";
+    }
+
+    function tick(amount) {
+      if (isRevealed) return;
+      remaining -= amount;
+      renderCount();
+      if (remaining <= 0) reveal();
+    }
+
+    function closeModal() {
+      if (timerId) window.clearInterval(timerId);
+      modal.classList.remove("active");
+      if (typeof options.onClose === "function") options.onClose();
+    }
+
+    if (title) title.textContent = options.title || "선물 상자를 열어 보세요";
+    if (copy) copy.textContent = options.copy || "상자를 두드리면 더 빨리 열려요.";
+    if (closeButton) closeButton.onclick = closeModal;
+    box.classList.remove("opened", "tap-pop");
+    box.disabled = false;
+    result.hidden = true;
+    resultImage.removeAttribute("src");
+    resultImage.alt = "";
+    resultTitle.textContent = "";
+    resultCopy.textContent = "";
+    renderCount();
+
+    box.onclick = () => tick(2);
+    modal.classList.add("active");
+    timerId = window.setInterval(() => tick(1), 650);
+  }
+
+  async function drawDailyPet() {
+    if (dailyDrawInProgress || !dashboardModel) return;
+
+    const ownedPets = dashboardModel.pets || [];
+    const reward = window.GrowthNoteRewards.selectDailyPetReward({ ownedPets });
+    if (!reward) {
+      renderDailyPetDraw(dashboardModel.dailyDraws || [], ownedPets);
+      setStatus("모든 마이펫을 이미 모았어요.");
+      return;
+    }
+
+    dailyDrawInProgress = true;
+    renderDailyPetDraw(dashboardModel.dailyDraws || [], ownedPets);
+
+    try {
+      const today = todayKoreaDateString();
+      const client = window.GrowthNoteSupabase.getClient();
+      const { error: drawError } = await client.from("daily_pet_draws").insert({
+        student_id: studentId,
+        draw_date: today,
+        pet_id: reward.item.pet_id
+      });
+
+      if (drawError) {
+        if (isDuplicateDailyDrawError(drawError)) {
+          setStatus("오늘의 마이펫 뽑기는 이미 완료했어요.");
+          loadDashboard();
+          return;
+        }
+        throw drawError;
+      }
+
+      const { error: petError } = await client.from("unlocked_pets").insert({
+        student_id: studentId,
+        pet_id: reward.item.pet_id,
+        quantity: 1
+      });
+      if (petError) throw petError;
+
+      const { error: updateError } = await client
+        .from("students")
+        .update({ current_pet_num: reward.item.pet_id })
+        .eq("id", studentId);
+      if (updateError) throw updateError;
+
+      const { error: logError } = await client.from("student_logs").insert({
+        student_id: studentId,
+        type: "daily_pet_draw",
+        category: today,
+        description: "오늘의 마이펫 뽑기",
+        xp_change: 0,
+        reward_type: "pet",
+        reward_id: reward.item.pet_id
+      });
+      if (logError) throw logError;
+
+      openRewardDrawModal({
+        type: "pet",
+        title: "오늘의 마이펫",
+        copy: "상자를 두드리면 더 빨리 열려요.",
+        resultTitle: `마이펫 ${reward.item.pet_id}`,
+        resultCopy: "새로운 마이펫이 함께하게 되었어요.",
+        imageSrc: window.GrowthNoteRules.petImagePath(reward.item),
+        onClose: loadDashboard
+      });
+    } catch (error) {
+      setStatus("마이펫 뽑기 오류: " + error.message, true);
+    } finally {
+      dailyDrawInProgress = false;
+      renderDailyPetDraw(dashboardModel.dailyDraws || [], dashboardModel.pets || []);
+    }
+  }
+
   function activateTab(tabName) {
     document.querySelectorAll("[data-tab-panel]").forEach((panel) => {
       panel.classList.toggle("active", panel.dataset.tabPanel === tabName);
@@ -384,6 +585,11 @@
   const refreshBtn = document.getElementById("refresh-button");
   if (refreshBtn) {
     refreshBtn.addEventListener("click", loadDashboard);
+  }
+
+  const dailyPetDrawButton = document.getElementById("daily-pet-draw-button");
+  if (dailyPetDrawButton) {
+    dailyPetDrawButton.addEventListener("click", drawDailyPet);
   }
 
   // Handle student data reset

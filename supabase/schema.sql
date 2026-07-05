@@ -43,6 +43,15 @@ create table if not exists public.unlocked_pets (
   unique (student_id, pet_id)
 );
 
+create table if not exists public.daily_pet_draws (
+  id uuid primary key default gen_random_uuid(),
+  student_id uuid not null references public.students(id) on delete cascade,
+  draw_date date not null,
+  pet_id text,
+  created_at timestamptz not null default now(),
+  unique (student_id, draw_date)
+);
+
 create table if not exists public.student_logs (
   id uuid primary key default gen_random_uuid(),
   student_id uuid not null references public.students(id) on delete cascade,
@@ -60,6 +69,7 @@ create table if not exists public.student_logs (
 alter table public.students enable row level security;
 alter table public.unlocked_avatars enable row level security;
 alter table public.unlocked_pets enable row level security;
+alter table public.daily_pet_draws enable row level security;
 alter table public.student_logs enable row level security;
 
 create policy "anon read students" on public.students for select using (true);
@@ -70,6 +80,8 @@ create policy "anon read avatars" on public.unlocked_avatars for select using (t
 create policy "anon insert avatars" on public.unlocked_avatars for insert with check (true);
 create policy "anon read pets" on public.unlocked_pets for select using (true);
 create policy "anon insert pets" on public.unlocked_pets for insert with check (true);
+create policy "anon read daily pet draws" on public.daily_pet_draws for select using (true);
+create policy "anon insert daily pet draws" on public.daily_pet_draws for insert with check (true);
 create policy "anon read logs" on public.student_logs for select using (true);
 create policy "anon insert logs" on public.student_logs for insert with check (true);
 

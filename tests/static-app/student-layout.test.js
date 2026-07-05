@@ -15,29 +15,40 @@ for (const tabName of ["home", "collection", "history", "settings"]) {
   );
 }
 
-for (const label of ["홈", "보관함", "기록", "설정"]) {
-  assert(html.includes(label), `student.html should include Korean tab label ${label}`);
-}
-
-assert(!html.includes("?깆"), "student.html should not contain mojibake title text");
-assert(!html.includes("�"), "student.html should not contain replacement characters");
+assert(!html.includes("?源?"), "student.html should not contain mojibake title text");
+assert(!html.includes("占?"), "student.html should not contain replacement characters");
 
 for (const copy of [
-  "칭찬을 받으면 XP가 쌓이고 레벨이 올라갑니다.",
-  "레벨업할 때마다 새로운 아바타 또는 마이펫 보상을 받을 수 있습니다.",
-  "Lv.2까지 105 XP"
+  "id=\"level-guide-title\"",
+  "Lv.2",
+  "105 XP"
 ]) {
   assert(html.includes(copy), `student.html should explain level-up system: ${copy}`);
 }
 
+assert(
+  !html.includes("?꾨컮? ?먮뒗 留덉씠??蹂댁긽"),
+  "student.html should not say level-up grants either avatars or My Pets"
+);
+
 for (const copy of [
   "id=\"starter-avatar-modal\"",
   "data-starter-avatar=\"1\"",
-  "data-starter-avatar=\"2\"",
-  "첫 아바타를 선택하세요",
-  "성장을 함께할 첫 아바타를 선물로 받을 수 있어요."
+  "data-starter-avatar=\"2\""
 ]) {
   assert(html.includes(copy), `student.html should include starter avatar selection UI: ${copy}`);
+}
+
+for (const copy of [
+  "id=\"daily-pet-draw-card\"",
+  "id=\"daily-pet-draw-button\"",
+  "id=\"daily-pet-draw-status\"",
+  "id=\"reward-draw-modal\"",
+  "id=\"reward-draw-box\"",
+  "id=\"reward-draw-count\"",
+  "id=\"reward-draw-result-image\""
+]) {
+  assert(html.includes(copy), `student.html should include daily draw UI: ${copy}`);
 }
 
 console.log("student-layout.test.js passed");

@@ -14,34 +14,39 @@ for (let gender = 1; gender <= 2; gender += 1) {
   }
 }
 
-const petReward = global.GrowthNoteRewards.selectNextReward({
-  ownedAvatars,
-  ownedPets: [],
-  random: () => 0
-});
-assert.strictEqual(petReward.type, "pet");
-assert.strictEqual(petReward.item.pet_id, "001");
-
 const avatarReward = global.GrowthNoteRewards.selectNextReward({
   ownedAvatars: [],
-  ownedPets: [{ pet_id: "001" }],
+  ownedPets: [],
   random: () => 0
 });
 assert.strictEqual(avatarReward.type, "avatar");
 assert.strictEqual(avatarReward.item.gender, "1");
 assert.strictEqual(avatarReward.item.avatar_id, "001");
 
+const dailyPetReward = global.GrowthNoteRewards.selectDailyPetReward({
+  ownedPets: [],
+  random: () => 0
+});
+assert.strictEqual(dailyPetReward.type, "pet");
+assert.strictEqual(dailyPetReward.item.pet_id, "001");
+
 const allPets = [];
 for (let id = 1; id <= 100; id += 1) {
   allPets.push({ pet_id: String(id).padStart(3, "0") });
 }
 
-const completeReward = global.GrowthNoteRewards.selectNextReward({
-  ownedAvatars,
+const completePetReward = global.GrowthNoteRewards.selectDailyPetReward({
   ownedPets: allPets,
   random: () => 0
 });
-assert.strictEqual(completeReward, null);
+assert.strictEqual(completePetReward, null);
+
+const completeAvatarReward = global.GrowthNoteRewards.selectNextReward({
+  ownedAvatars,
+  ownedPets: [],
+  random: () => 0
+});
+assert.strictEqual(completeAvatarReward, null);
 
 function createMockClient({ student, ownedAvatars = [], ownedPets = [] }) {
   const operations = {
@@ -164,15 +169,23 @@ function createMockClient({ student, ownedAvatars = [], ownedPets = [] }) {
     getClient: () => levelUpMock.client
   };
 
-  const levelUpResult = await global.GrowthNoteRewards.assignPraise("student-2", "presentation");
+  const originalRandom = Math.random;
+  Math.random = () => 0;
+  let levelUpResult;
+  try {
+    levelUpResult = await global.GrowthNoteRewards.assignPraise("student-2", "presentation");
+  } finally {
+    Math.random = originalRandom;
+  }
 
   assert.strictEqual(levelUpResult.oldLevel, 1);
   assert.strictEqual(levelUpResult.newLevel, 2);
   assert(levelUpResult.reward, "level-up praise should include a reward");
-  assert.strictEqual(
-    levelUpMock.operations.avatarInserts.length + levelUpMock.operations.petInserts.length,
-    1
-  );
+  assert.strictEqual(levelUpResult.reward.type, "avatar");
+  assert.strictEqual(levelUpMock.operations.avatarInserts.length, 1);
+  assert.strictEqual(levelUpMock.operations.petInserts.length, 0);
+  assert.strictEqual(levelUpMock.operations.studentUpdates[0].current_avatar_num, "1_001");
+  assert.strictEqual(levelUpMock.operations.studentUpdates[0].display_avatar_type, "library");
 })();
 
 console.log("rewards.test.js passed");

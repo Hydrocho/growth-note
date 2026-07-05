@@ -18,28 +18,27 @@
   function selectNextReward(options) {
     const rules = root.GrowthNoteRules;
     const ownedAvatars = options.ownedAvatars || [];
-    const ownedPets = options.ownedPets || [];
     const random = options.random || Math.random;
 
     const ownedAvatarKeys = new Set(ownedAvatars.map(avatarKey));
-    const ownedPetKeys = new Set(ownedPets.map(petKey));
     const availableAvatars = rules.AVATAR_POOL.filter((item) => !ownedAvatarKeys.has(avatarKey(item)));
+
+    if (!availableAvatars.length) return null;
+
+    return { type: "avatar", item: chooseFrom(availableAvatars, random) };
+  }
+
+  function selectDailyPetReward(options) {
+    const rules = root.GrowthNoteRules;
+    const ownedPets = options.ownedPets || [];
+    const random = options.random || Math.random;
+
+    const ownedPetKeys = new Set(ownedPets.map(petKey));
     const availablePets = rules.PET_POOL.filter((item) => !ownedPetKeys.has(petKey(item)));
 
-    const preferAvatar = random() < 0.5;
-    const firstType = preferAvatar ? "avatar" : "pet";
-    const attempts = firstType === "avatar" ? ["avatar", "pet"] : ["pet", "avatar"];
+    if (!availablePets.length) return null;
 
-    for (const type of attempts) {
-      if (type === "avatar" && availableAvatars.length) {
-        return { type, item: chooseFrom(availableAvatars, random) };
-      }
-      if (type === "pet" && availablePets.length) {
-        return { type, item: chooseFrom(availablePets, random) };
-      }
-    }
-
-    return null;
+    return { type: "pet", item: chooseFrom(availablePets, random) };
   }
 
   async function assignPraise(studentId, praiseItemId, options) {
@@ -159,6 +158,7 @@
 
   root.GrowthNoteRewards = {
     selectNextReward,
+    selectDailyPetReward,
     assignPraise
   };
 })(typeof window !== "undefined" ? window : globalThis);

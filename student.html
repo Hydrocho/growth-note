@@ -57,6 +57,18 @@
           </article>
         </section>
 
+        <section id="daily-pet-draw-card" class="daily-draw-card surface-card" data-daily-draw-state="loading">
+          <div class="daily-draw-copy">
+            <span class="eyebrow">Daily Gift</span>
+            <h2>오늘의 마이펫 뽑기</h2>
+            <p id="daily-pet-draw-status">오늘 받을 수 있는 마이펫을 확인하고 있어요.</p>
+          </div>
+          <button id="daily-pet-draw-button" class="button daily-draw-button" type="button" disabled>
+            <span class="material-symbols-outlined" aria-hidden="true">redeem</span>
+            <span>뽑기</span>
+          </button>
+        </section>
+
 
       </section>
 
@@ -116,7 +128,7 @@
           <p>칭찬을 받으면 XP가 쌓이고 레벨이 올라갑니다.</p>
           <ul class="level-guide-list">
             <li>Lv.2까지 105 XP가 필요합니다.</li>
-            <li>레벨업할 때마다 새로운 아바타 또는 마이펫 보상을 받을 수 있습니다.</li>
+            <li>레벨업할 때마다 새로운 아바타 보상을 받을 수 있습니다.</li>
             <li>홈 화면의 XP 막대에서 다음 레벨까지 남은 성장을 확인할 수 있습니다.</li>
           </ul>
         </section>
@@ -159,6 +171,27 @@
             <img src="public/img/avatarLibrary_IMG/avatarLibrary_2_001.png" alt="두 번째 아바타">
             <span>이 아바타 받기</span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="reward-draw-modal" class="modal-overlay reward-draw-modal" aria-labelledby="reward-draw-title" role="dialog" aria-modal="true">
+      <div class="modal-content reward-draw-content">
+        <div class="modal-header">
+          <h2 id="reward-draw-title">선물 상자를 열어 보세요</h2>
+          <button id="reward-draw-close" class="icon-button" type="button" aria-label="닫기">
+            <span class="material-symbols-outlined" aria-hidden="true">close</span>
+          </button>
+        </div>
+        <p id="reward-draw-copy" class="reward-draw-copy">상자를 두드리면 더 빨리 열려요.</p>
+        <button id="reward-draw-box" class="reward-draw-box" type="button" aria-label="선물 상자 두드리기">
+          <span id="reward-draw-count" class="reward-draw-count">10</span>
+          <span class="material-symbols-outlined reward-draw-gift" aria-hidden="true">redeem</span>
+        </button>
+        <div id="reward-draw-result" class="reward-draw-result" hidden>
+          <img id="reward-draw-result-image" alt="">
+          <strong id="reward-draw-result-title"></strong>
+          <p id="reward-draw-result-copy"></p>
         </div>
       </div>
     </div>
