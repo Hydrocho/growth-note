@@ -2,7 +2,6 @@
   "use strict";
 
   const studentId = sessionStorage.getItem("growth-note-student-id");
-  const isDemoStudent = sessionStorage.getItem("growth-note-demo-student") === "true";
   const status = document.getElementById("student-status");
 
   function setStatus(message, isError) {
@@ -21,8 +20,7 @@
   }
 
   function displayStudentName(student) {
-    const rawName = student.nickname || student.name || "테스트";
-    return String(rawName).replace(/\s*학생$/u, "").trim() || rawName;
+    return student.school_id || "";
   }
 
   function currentAvatarPath(student, avatars) {
@@ -113,7 +111,6 @@
     setText("recent-praise-count", logs.length);
     setText("settings-student-name", displayName);
     setText("settings-student-id", student.school_id || "-");
-    setText("settings-mode", isDemoStudent ? "데모" : "일반");
 
     document.getElementById("level-progress").style.width = `${progress.percent}%`;
     const circle = document.getElementById("xp-progress-circle");
@@ -130,42 +127,9 @@
     renderLogs(logs);
   }
 
-  function demoModel() {
-    const now = new Date().toISOString();
-    return {
-      student: {
-        id: "demo-000000",
-        school_id: "000000",
-        name: "테스트 학생",
-        nickname: "테스트 학생",
-        total_xp: 105,
-        level: 2,
-        current_avatar_num: "1_001",
-        current_pet_num: "001",
-        display_avatar_type: "library"
-      },
-      avatars: [{ avatar_id: "001", gender: "1", unlocked_at: now }],
-      pets: [{ pet_id: "001", unlocked_at: now }],
-      logs: [{
-        description: "테스트 로그인",
-        category: "demo",
-        xp_change: 105,
-        reward_type: "pet",
-        reward_id: "001",
-        created_at: now
-      }]
-    };
-  }
-
   async function loadDashboard() {
     if (!studentId) {
       window.location.href = "student-login.html";
-      return;
-    }
-
-    if (isDemoStudent) {
-      renderDashboard(demoModel());
-      setStatus("");
       return;
     }
 
@@ -234,7 +198,7 @@
   document.getElementById("logout-button").addEventListener("click", function () {
     sessionStorage.removeItem("growth-note-student-id");
     sessionStorage.removeItem("growth-note-demo-student");
-    window.location.href = "index.html";
+    window.location.href = "student-login.html";
   });
 
   loadDashboard();

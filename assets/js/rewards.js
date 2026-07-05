@@ -42,14 +42,22 @@
     return null;
   }
 
-  async function assignPraise(studentId, praiseItemId) {
+  async function assignPraise(studentId, praiseItemId, options) {
     const rules = root.GrowthNoteRules;
     const client = root.GrowthNoteSupabase.getClient();
-    const praise = rules.PRAISE_ITEMS.find((item) => item.id === praiseItemId);
-
+    let praise = rules.PRAISE_ITEMS.find((item) => item.id === praiseItemId);
+    
+    // custom praise 이거나 rules에 없는 경우 기본 커스텀 객체 생성
     if (!praise) {
-      throw new Error("Unknown praise item.");
+      praise = {
+        id: praiseItemId || "custom",
+        label: "칭찬 점수 부여",
+        xp: options && typeof options.customXp === "number" ? options.customXp : 10
+      };
     }
+
+    const note = options && options.note ? String(options.note).trim() : "";
+    const xpChange = options && typeof options.customXp === "number" ? options.customXp : praise.xp;
 
     const { data: student, error: studentError } = await client
       .from("students")
@@ -70,12 +78,14 @@
 
     const oldXp = Number(student.total_xp || 0);
     const oldLevel = Number(student.level || rules.calculateLevel(oldXp));
-    const newXp = oldXp + praise.xp;
+    const newXp = oldXp + xpChange;
     const newLevel = rules.calculateLevel(newXp);
-    const reward = selectNextReward({
-      ownedAvatars: ownedAvatars || [],
-      ownedPets: ownedPets || []
-    });
+    const reward = newLevel > oldLevel
+      ? selectNextReward({
+        ownedAvatars: ownedAvatars || [],
+        ownedPets: ownedPets || []
+      })
+      : null;
 
     const studentUpdate = {
       total_xp: newXp,
@@ -127,8 +137,8 @@
       student_id: studentId,
       type: "praise",
       category: praise.id,
-      description: praise.label,
-      xp_change: praise.xp,
+      description: note ? `${praise.label} - ${note}` : (praise.id === "custom" ? "칭찬 점수 부여" : praise.label),
+      xp_change: xpChange,
       reward_type: reward ? reward.type : null,
       reward_id: rewardId,
       level_before: oldLevel,
@@ -152,4 +162,3 @@
     assignPraise
   };
 })(typeof window !== "undefined" ? window : globalThis);
-

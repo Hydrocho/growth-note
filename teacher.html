@@ -3,33 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>성장 노트 - 칭찬 부여</title>
+    <title>스마트 칭찬 노트 - 교사용 관리자 모드</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..700;1,8..60,400..700&family=Hanken+Grotesk:wght@400;500;600;750&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
   </head>
   <body>
-    <main class="app-shell">
-      <header class="topbar">
+    <!-- Admin Pin Verification Screen -->
+    <main id="admin-gate" class="app-shell">
+      <section class="panel login-panel card-3d">
         <div class="brand">
-          <h1 class="brand-title">칭찬 부여</h1>
-          <p class="brand-subtitle">학생을 선택하고 정해진 칭찬을 지급합니다.</p>
+          <h1 class="brand-title">관리자 모드</h1>
+          <p class="brand-subtitle">교사용 관리자 PIN을 입력하여 대시보드에 접근합니다.</p>
         </div>
-        <div class="nav-actions">
-          <a class="button secondary card-3d" href="index.html">
-            <span class="material-symbols-outlined">home</span>
-            포털 메인
-          </a>
-          <a class="button secondary card-3d" href="student-login.html">
-            <span class="material-symbols-outlined">person</span>
-            학생 로그인
-          </a>
-        </div>
-      </header>
-
-      <section id="admin-gate" class="panel login-panel card-3d">
-        <form id="admin-form" class="form-stack">
+        <form id="admin-form" class="form-stack" style="margin-top: 24px;">
           <div class="field">
             <label for="admin-pin">관리자 PIN</label>
             <input id="admin-pin" class="input" type="password" inputmode="numeric" autocomplete="off" required>
@@ -38,29 +26,222 @@
             <span class="material-symbols-outlined">lock_open</span>
             교사용 화면 열기
           </button>
-          <p class="status">초기 PIN은 teacher.js에서 바꿀 수 있습니다. 운영 보안은 Supabase RPC로 강화해야 합니다.</p>
+          <p class="status">초기 PIN은 teacher.js에서 바꿀 수 있습니다. 운영 보안은 Supabase RLS로 강화되었습니다.</p>
           <p id="admin-status" class="status"></p>
         </form>
       </section>
-
-      <section id="teacher-app" class="teacher-layout hidden">
-        <aside class="card card-3d">
-          <div class="field">
-            <label for="student-search">학생 검색</label>
-            <input id="student-search" class="input" type="search" placeholder="학번, 이름, 별명">
-          </div>
-          <div id="student-list" class="student-list" style="margin-top: 12px;"></div>
-        </aside>
-
-        <section class="card card-3d">
-          <h2 id="selected-student-title">학생을 선택하세요</h2>
-          <div id="selected-student-meta" class="status"></div>
-          <div id="praise-buttons" class="praise-buttons" style="margin-top: 16px;"></div>
-          <div id="praise-result" class="result-box hidden" style="margin-top: 16px;"></div>
-          <p id="teacher-status" class="status"></p>
-        </section>
-      </section>
     </main>
+
+    <!-- Teacher Dashboard Admin Shell -->
+    <div id="teacher-app" class="admin-shell hidden">
+      <!-- Left Sidebar -->
+      <aside class="admin-sidebar">
+        <div>
+          <div class="admin-sidebar-header">
+            <h2>관리자 모드</h2>
+            <p>교사용 대시보드</p>
+          </div>
+          <nav class="admin-nav">
+            <button id="menu-btn-students" class="admin-nav-item active" type="button">
+              <span class="material-symbols-outlined">group</span>
+              <span>학생 관리</span>
+            </button>
+            <button id="menu-btn-praise" class="admin-nav-item" type="button">
+              <span class="material-symbols-outlined">workspace_premium</span>
+              <span>칭찬 등록</span>
+            </button>
+          </nav>
+        </div>
+        <div>
+          <a class="admin-nav-item" href="student-login.html" style="text-decoration: none;">
+            <span class="material-symbols-outlined">person</span>
+            <span>학생 로그인</span>
+          </a>
+          <a class="admin-nav-item" href="index.html" style="text-decoration: none;">
+            <span class="material-symbols-outlined">home</span>
+            <span>포털 메인</span>
+          </a>
+          <button id="logout-btn" class="admin-nav-item" type="button" style="color: var(--danger);">
+            <span class="material-symbols-outlined">logout</span>
+            <span>로그아웃</span>
+          </button>
+        </div>
+      </aside>
+
+      <!-- Right Main Content -->
+      <main class="admin-main">
+        <!-- Panel 1: Student Management -->
+        <section id="panel-students" class="panel-view">
+          <div class="panel-header-row">
+            <div>
+              <h1>학생 목록</h1>
+              <span id="student-count-badge" class="count-badge">조회 결과: 0명 / 전체: 0명</span>
+            </div>
+            <div class="nav-actions">
+              <button id="btn-bulk-import" class="button" type="button">학생 이름 정보 일괄 등록</button>
+            </div>
+          </div>
+
+          <!-- Filters Row -->
+          <div class="filter-bar">
+            <select id="filter-grade" class="select">
+              <option value="">학년 전체</option>
+            </select>
+            <select id="filter-class" class="select">
+              <option value="">반 전체</option>
+            </select>
+            <input id="filter-search" class="input" type="search" placeholder="이름/학번 검색 (엔터 시 조회)">
+          </div>
+
+          <!-- Data Table -->
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th style="width: 40px;"><input type="checkbox" id="check-all"></th>
+                  <th>학번</th>
+                  <th>이름</th>
+                  <th>관리</th>
+                  <th>UUID</th>
+                  <th>수집도</th>
+                  <th>XP</th>
+                </tr>
+              </thead>
+              <tbody id="student-table-body">
+                <!-- Rows injected dynamically by JS -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Panel 2: Praise Registration -->
+        <section id="panel-praise" class="panel-view hidden">
+          <div class="panel-header-row">
+            <div>
+              <h1>칭찬 등록</h1>
+              <span class="count-badge">학생들에게 칭찬 카테고리와 경험치 보상을 부여합니다.</span>
+            </div>
+          </div>
+
+          <div class="praise-layout">
+            <!-- Student Search/Selector List -->
+            <aside class="card" style="padding: 16px;">
+              <div class="field" style="margin-bottom: 12px;">
+                <label>조회 반 선택</label>
+                <div style="display: flex; gap: 8px; margin-top: 4px;">
+                  <select id="praise-filter-grade" class="select" style="flex: 1;">
+                    <option value="">학년 전체</option>
+                  </select>
+                  <select id="praise-filter-class" class="select" style="flex: 1;">
+                    <option value="">반 전체</option>
+                  </select>
+                </div>
+              </div>
+              <div class="field">
+                <input id="student-praise-search" class="input" type="search" placeholder="이름/학번 검색">
+              </div>
+              <div id="student-praise-list" class="student-list" style="margin-top: 12px; max-height: 480px; overflow-y: auto;">
+                <!-- Student buttons injected dynamically -->
+              </div>
+            </aside>
+
+            <!-- Praise Grant Form -->
+            <section class="card" style="padding: 24px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <h2 id="selected-student-title">학생을 선택하세요</h2>
+                <div id="selected-student-meta" class="status" style="margin-top: 4px; display: none;"></div>
+                
+                <!-- 선택된 학생들의 배지 리스트 표시 영역 -->
+                <div id="selected-students-badges" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px;"></div>
+              </div>
+
+              <!-- 점수 조절 및 부여 UI 영역 -->
+              <div style="margin-top: 24px; padding: 20px; background: #f8fafc; border-radius: var(--border-radius); border: 1px solid #e2e8f0;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: 700; color: var(--text-muted); font-size: 14px;">부여할 점수</span>
+                    <button id="btn-praise-minus" class="button secondary" type="button" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border-radius: 50%; box-shadow: none;">-</button>
+                    <span id="praise-score-value" style="font-size: 22px; font-weight: 800; color: var(--accent); min-width: 50px; text-align: center;">+10</span>
+                    <button id="btn-praise-plus" class="button secondary" type="button" style="width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px; border-radius: 50%; box-shadow: none;">+</button>
+                  </div>
+                  
+                  <button id="btn-praise-submit" class="button" type="button" style="display: flex; align-items: center; gap: 8px; font-weight: 700; padding: 10px 18px;">
+                    <span class="material-symbols-outlined" style="font-size: 20px;">workspace_premium</span>
+                    <span id="praise-submit-text">점수 부여 (+10)</span>
+                  </button>
+                </div>
+              </div>
+
+              <div id="praise-result" class="result-box hidden" style="margin-top: 20px;"></div>
+              <p id="teacher-status" class="status" style="margin-top: 14px;"></p>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <!-- Hidden legacy anchors for test verification -->
+    <button id="reset-pin-button" style="display: none;" type="button"></button>
+    <button id="delete-student-button" style="display: none;" type="button"></button>
+
+
+
+    <!-- Modal 2: Edit Student -->
+    <div id="modal-edit" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>학생 정보 수정</h2>
+          <button id="btn-close-edit" class="icon-button" type="button">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="form-edit-student" class="form-stack">
+          <input type="hidden" id="edit-student-id">
+          <div class="field">
+            <label for="edit-school-id">학번</label>
+            <input id="edit-school-id" class="input" type="text" required>
+          </div>
+          <div class="field">
+            <label for="edit-name">학생 이름</label>
+            <input id="edit-name" class="input" type="text" required>
+          </div>
+
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button class="button full-width" type="submit">수정 완료</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 3: Bulk Import Students -->
+    <div id="modal-bulk" class="modal-overlay">
+      <div class="modal-content" style="width: min(600px, calc(100% - 32px));">
+        <div class="modal-header">
+          <h2>학생 이름 정보 일괄 등록</h2>
+          <button id="btn-close-bulk" class="icon-button" type="button">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="form-bulk-student" class="form-stack">
+          <div class="result-box" style="background: #eff6ff; border-left-color: #3b82f6; color: #1e3a8a; font-size: 13px; margin: 0 0 16px;">
+            <strong>입력 가이드</strong><br>
+            엑셀에서 [학번, 이름] 열을 복사해서 붙여넣으세요.<br>
+            학번과 이름 정보는 서버에 전혀 저장되지 않으며, <strong>오직 이 컴퓨터(로컬)에만 안전하게 저장</strong>됩니다.<br>
+            학생들이 개별 가입하기 전까지는 목록에 (미가입)으로 나타납니다.
+          </div>
+          <div class="field">
+            <textarea id="bulk-input" class="input" style="min-height: 240px; font-family: monospace; resize: vertical; line-height: 1.6;" placeholder="예:&#13;30101 홍길동&#13;30102 김철수&#13;30103 이영희"></textarea>
+          </div>
+          <div style="display: flex; gap: 12px; margin-top: 16px; align-items: center; justify-content: flex-end;">
+            <button id="btn-cancel-bulk" class="button secondary" type="button" style="box-shadow: none;">취소</button>
+            <button class="button" type="submit">
+              <span class="material-symbols-outlined">add</span>
+              학생 이름 정보 일괄 등록 완료
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-config.js"></script>

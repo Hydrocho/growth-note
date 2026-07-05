@@ -100,6 +100,19 @@
     return `public/img/myPet_IMG/myPet_${petId}.png`;
   }
 
+  async function hashPin(pin) {
+    const val = String(pin || "");
+    if (typeof window === "undefined" && typeof require !== "undefined") {
+      const cryptoNode = require("crypto");
+      return cryptoNode.createHash("sha256").update(val).digest("hex");
+    }
+    const encoder = new TextEncoder();
+    const data = encoder.encode(val);
+    const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+  }
+
   root.GrowthNoteRules = {
     PRAISE_ITEMS,
     LEVELS,
@@ -110,6 +123,7 @@
     normalizeStudentId,
     avatarImagePath,
     levelAvatarImagePath,
-    petImagePath
+    petImagePath,
+    hashPin
   };
 })(typeof window !== "undefined" ? window : globalThis);

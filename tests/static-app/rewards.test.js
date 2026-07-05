@@ -43,4 +43,136 @@ const completeReward = global.GrowthNoteRewards.selectNextReward({
 });
 assert.strictEqual(completeReward, null);
 
+function createMockClient({ student, ownedAvatars = [], ownedPets = [] }) {
+  const operations = {
+    studentUpdates: [],
+    avatarInserts: [],
+    petInserts: [],
+    logInserts: []
+  };
+
+  function table(name) {
+    if (name === "students") {
+      return {
+        select() {
+          return {
+            eq() {
+              return {
+                async single() {
+                  return { data: student, error: null };
+                }
+              };
+            }
+          };
+        },
+        update(payload) {
+          operations.studentUpdates.push(payload);
+          return {
+            async eq() {
+              return { error: null };
+            }
+          };
+        }
+      };
+    }
+
+    if (name === "unlocked_avatars") {
+      return {
+        select() {
+          return {
+            async eq() {
+              return { data: ownedAvatars, error: null };
+            }
+          };
+        },
+        async insert(payload) {
+          operations.avatarInserts.push(payload);
+          return { error: null };
+        }
+      };
+    }
+
+    if (name === "unlocked_pets") {
+      return {
+        select() {
+          return {
+            async eq() {
+              return { data: ownedPets, error: null };
+            }
+          };
+        },
+        async insert(payload) {
+          operations.petInserts.push(payload);
+          return { error: null };
+        }
+      };
+    }
+
+    if (name === "student_logs") {
+      return {
+        async insert(payload) {
+          operations.logInserts.push(payload);
+          return { error: null };
+        }
+      };
+    }
+
+    throw new Error(`Unexpected table: ${name}`);
+  }
+
+  return {
+    client: { from: table },
+    operations
+  };
+}
+
+(async function testPraiseRewardsOnlyOnLevelUp() {
+  const noLevelUpMock = createMockClient({
+    student: {
+      id: "student-1",
+      total_xp: 0,
+      level: 1
+    }
+  });
+
+  global.GrowthNoteSupabase = {
+    getClient: () => noLevelUpMock.client
+  };
+
+  const noLevelUpResult = await global.GrowthNoteRewards.assignPraise(
+    "student-1",
+    "presentation",
+    { note: "Volunteered first" }
+  );
+
+  assert.strictEqual(noLevelUpResult.oldLevel, 1);
+  assert.strictEqual(noLevelUpResult.newLevel, 1);
+  assert.strictEqual(noLevelUpResult.reward, null);
+  assert.strictEqual(noLevelUpMock.operations.avatarInserts.length, 0);
+  assert.strictEqual(noLevelUpMock.operations.petInserts.length, 0);
+  assert.strictEqual(noLevelUpMock.operations.logInserts[0].description, "발표를 잘했어요 - Volunteered first");
+
+  const levelUpMock = createMockClient({
+    student: {
+      id: "student-2",
+      total_xp: 100,
+      level: 1
+    }
+  });
+
+  global.GrowthNoteSupabase = {
+    getClient: () => levelUpMock.client
+  };
+
+  const levelUpResult = await global.GrowthNoteRewards.assignPraise("student-2", "presentation");
+
+  assert.strictEqual(levelUpResult.oldLevel, 1);
+  assert.strictEqual(levelUpResult.newLevel, 2);
+  assert(levelUpResult.reward, "level-up praise should include a reward");
+  assert.strictEqual(
+    levelUpMock.operations.avatarInserts.length + levelUpMock.operations.petInserts.length,
+    1
+  );
+})();
+
 console.log("rewards.test.js passed");
