@@ -570,6 +570,11 @@
     const resultCopy = document.getElementById("reward-draw-result-copy");
     if (!modal || !box || !count || !result || !resultImage || !resultTitle || !resultCopy) return;
 
+    const resultHalo = document.getElementById("reward-draw-result-halo");
+    const resultBadge = document.getElementById("reward-draw-result-tier-badge");
+    if (resultHalo) resultHalo.style.display = "none";
+    if (resultBadge) resultBadge.style.display = "none";
+
     let remaining = 10;
     let timerId = null;
     let isRevealed = false;
@@ -601,6 +606,30 @@
       resultImage.alt = options.resultTitle || "";
       resultTitle.textContent = options.resultTitle || "";
       resultCopy.textContent = options.resultCopy || "";
+
+      // 등급 및 후광 표시 연동
+      if (options.rewardId && resultHalo && resultBadge) {
+        let targetId = options.rewardId;
+        if (targetId && targetId.includes("_")) {
+          targetId = targetId.split("_")[1];
+        }
+        const tier = getItemTierInfo(targetId);
+        
+        // 등급 배지 설정
+        resultBadge.textContent = tier.name;
+        resultBadge.style.color = tier.color;
+        resultBadge.style.backgroundColor = tier.bg;
+        resultBadge.style.border = `1px solid ${tier.color}`;
+        resultBadge.style.display = "inline-block";
+
+        // 후광 색상 설정 (연하고 부드럽게)
+        resultHalo.style.backgroundColor = tier.color;
+        resultHalo.style.boxShadow = `0 0 36px 10px ${tier.color}`;
+        resultHalo.style.display = "block";
+      } else {
+        if (resultBadge) resultBadge.style.display = "none";
+        if (resultHalo) resultHalo.style.display = "none";
+      }
 
       // 모달 내부에서 대표 설정 질문 및 버튼 동작 바인딩
       if (options.rewardId && confirmText && setRepBtn && keepBtn) {
@@ -915,10 +944,12 @@
         .eq("student_id", studentId);
       if (petsErr) throw petsErr;
 
+      const today = todayKoreaDateString();
       const { error: drawsErr } = await client
         .from("daily_pet_draws")
         .delete()
-        .eq("student_id", studentId);
+        .eq("student_id", studentId)
+        .neq("draw_date", today);
       if (drawsErr) throw drawsErr;
 
       // 4. students 테이블 레코드 기본값으로 초기화

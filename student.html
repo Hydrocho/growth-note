@@ -217,11 +217,17 @@
         <span class="material-symbols-outlined reward-draw-gift" aria-hidden="true">redeem</span>
       </button>
       <div id="reward-draw-result" class="reward-draw-result" hidden>
-        <img id="reward-draw-result-image" alt="">
-        <strong id="reward-draw-result-title"></strong>
-        <p id="reward-draw-result-copy"></p>
-        <p id="reward-draw-confirm-text" style="margin: 12px 0 4px; font-size: 13px; font-weight: 700; color: var(--text);"></p>
-        <div style="display: flex; gap: 8px; width: 100%; margin-top: 8px; justify-content: center;">
+        <!-- 후광(Halo) 효과 요소를 이미지 뒤에 절대 배치 (연하게 처리) -->
+        <div id="reward-draw-result-halo" style="position: absolute; width: 140px; height: 140px; border-radius: 9999px; filter: blur(30px); opacity: 0.2; z-index: -1; transform: translate(-50%, -50%); left: 50%; top: 64px; transition: all 0.3s ease;"></div>
+        
+        <img id="reward-draw-result-image" alt="" style="z-index: 1;">
+        <!-- 뽑기 결과창 등급 배지 추가 -->
+        <div id="reward-draw-result-tier-badge" style="font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; display: inline-block; margin: 4px 0 8px; z-index: 1;"></div>
+        
+        <strong id="reward-draw-result-title" style="z-index: 1;"></strong>
+        <p id="reward-draw-result-copy" style="z-index: 1;"></p>
+        <p id="reward-draw-confirm-text" style="margin: 12px 0 4px; font-size: 13px; font-weight: 700; color: var(--text); z-index: 1;"></p>
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 8px; justify-content: center; z-index: 1;">
           <button id="reward-draw-set-rep" class="button" type="button" style="padding: 8px 16px; font-weight: 800; background: var(--accent); color: #ffffff; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px;">대표로 설정</button>
           <button id="reward-draw-keep" class="button" type="button" style="padding: 8px 16px; font-weight: 800; background: #e2e8f0; color: #475569; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px;">그냥 닫기</button>
         </div>

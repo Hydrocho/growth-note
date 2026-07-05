@@ -195,20 +195,12 @@
     // Restore previous selection or default value
     if (prevGrade && sortedGrades.includes(prevGrade)) {
       filterGrade.value = prevGrade;
-    } else if (sortedGrades.includes("3")) {
-      filterGrade.value = "3";
-    } else if (sortedGrades.length > 0) {
-      filterGrade.value = sortedGrades[0];
     } else {
       filterGrade.value = "";
     }
 
     if (prevClass && sortedClasses.includes(prevClass)) {
       filterClass.value = prevClass;
-    } else if (sortedClasses.includes("1")) {
-      filterClass.value = "1";
-    } else if (sortedClasses.length > 0) {
-      filterClass.value = sortedClasses[0];
     } else {
       filterClass.value = "";
     }
@@ -350,6 +342,21 @@
     const searchVal = filterSearch.value.trim().toLowerCase();
     const gradeVal = filterGrade.value;
     const classVal = filterClass.value;
+
+    // 학년 반 선택 확인 가드 추가
+    if (!gradeVal || !classVal) {
+      if (studentCountBadge) {
+        studentCountBadge.textContent = "학년과 반을 모두 선택해야 학생 명단이 나타납니다.";
+      }
+      studentTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" class="empty-state" style="text-align: center; padding: 32px; font-weight: 700; color: var(--muted);">
+            학년과 반을 모두 선택해야 학생 명단이 나타납니다.
+          </td>
+        </tr>
+      `;
+      return;
+    }
 
     const filtered = students.filter((student) => {
       const parsed = parseGradeClass(student.school_id);
