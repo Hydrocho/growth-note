@@ -747,6 +747,49 @@ img {
   font-weight: 700;
 }
 
+.level-guide-card {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.level-guide-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.level-guide-header .material-symbols-outlined {
+  color: var(--accent);
+  font-size: 22px;
+  font-variation-settings: "FILL" 1;
+}
+
+.level-guide-header h3 {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.level-guide-card p {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.level-guide-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 /* Bottom Tab Navigation Bar */
 .bottom-nav {
   position: fixed;
