@@ -95,6 +95,10 @@
   const modalUpdatePassword = document.getElementById("modal-update-password");
   const formUpdatePassword = document.getElementById("form-update-password");
 
+  // Signup Email Confirmation elements
+  const modalSignupConfirm = document.getElementById("modal-signup-confirm");
+  const btnSignupConfirmOk = document.getElementById("btn-signup-confirm-ok");
+
   let students = [];
   let teacherRolesList = [];
 
@@ -1484,7 +1488,25 @@
           password
         });
 
-        if (error) throw error;
+        if (error) {
+          // 이미 등록된 이메일 에러 시 인증 메일 재발송 링크 제공
+          const errMsg = error.message.toLowerCase();
+          if (errMsg.includes("already registered") || errMsg.includes("already exists") || errMsg.includes("이미 가입") || errMsg.includes("이미 존재")) {
+            setStatus(adminStatus, `이미 등록 신청된 이메일입니다. 인증 메일을 받지 못하셨다면 아래 링크를 눌러주세요.<br><a href="#" id="link-resend-signup" style="color: var(--primary); font-weight: 800; text-decoration: underline; display: inline-block; margin-top: 8px;">인증 이메일 재발송하기</a>`, true);
+            setTimeout(() => {
+              const linkResend = document.getElementById("link-resend-signup");
+              if (linkResend) {
+                linkResend.addEventListener("click", async (ev) => {
+                  ev.preventDefault();
+                  await resendSignupEmail(email);
+                });
+              }
+            }, 100);
+            setBusy(false);
+            return;
+          }
+          throw error;
+        }
 
         if (data && data.session) {
           const userEmail = email.toLowerCase();
@@ -1529,14 +1551,15 @@
           await loadStudents();
           setupRealtimeSubscription();
         } else {
-          // 이메일 인증 필요 문구 노출 및 초기화 후 로그인 폼 이동
-          setStatus(adminStatus, "회원가입 요청 성공! 인증 이메일을 확인하거나 로그인해 주세요.", false);
+          // 이메일 인증 필요 모달 노출 및 초기화 후 로그인 폼 이동
+          toggleModal(modalSignupConfirm, true);
           adminRegisterForm.reset();
           adminRegisterForm.style.display = "none";
           adminForm.style.display = "grid";
           btnToggleAdminLogin.style.display = "none";
           btnToggleAdminRegister.style.display = "block";
           adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
+          setStatus(adminStatus, "");
         }
       } catch (err) {
         setStatus(adminStatus, "회원가입 실패: " + err.message, true);
@@ -1709,6 +1732,36 @@
         setBusy(false);
       }
     });
+  }
+
+  // 인증 메일 재발송 처리 함수
+  async function resendSignupEmail(email) {
+    try {
+      setBusy(true);
+      setStatus(adminStatus, "인증 메일 재발송 중...");
+      const client = window.GrowthNoteSupabase.getClient();
+      const redirectToUrl = window.location.origin + window.location.pathname;
+      const { error } = await client.auth.resend({
+        type: "signup",
+        email: email,
+        options: {
+          emailRedirectTo: redirectToUrl
+        }
+      });
+      if (error) throw error;
+
+      toggleModal(modalSignupConfirm, true);
+      setStatus(adminStatus, "");
+    } catch (err) {
+      setStatus(adminStatus, "메일 재발송 실패: " + err.message, true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // 회원가입 완료 알림 모달 확인 버튼 리스너
+  if (btnSignupConfirmOk) {
+    btnSignupConfirmOk.addEventListener("click", () => toggleModal(modalSignupConfirm, false));
   }
 
   checkPasswordRecoveryFlow();

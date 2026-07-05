@@ -22,11 +22,11 @@
         <form id="admin-form" class="form-stack" style="margin-top: 24px;">
           <div class="field">
             <label for="admin-email">이메일 주소</label>
-            <input id="admin-email" class="input" type="email" autocomplete="email" placeholder="email@school.kr" required>
+            <input id="admin-email" name="email" class="input" type="email" autocomplete="username" placeholder="email@school.kr" required>
           </div>
           <div class="field" style="margin-top: 12px;">
             <label for="admin-password">비밀번호</label>
-            <input id="admin-password" class="input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
+            <input id="admin-password" name="password" class="input" type="password" autocomplete="current-password" placeholder="비밀번호 입력" required>
           </div>
           <button class="button" type="submit" style="margin-top: 18px;">
             <span class="material-symbols-outlined">lock_open</span>
@@ -480,6 +480,26 @@
             <button class="button" type="submit">변경 및 저장 완료</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Modal 8: Signup Email Confirmation Notice Modal -->
+    <div id="modal-signup-confirm" class="modal-overlay">
+      <div class="modal-content" style="max-width: 480px; text-align: center;">
+        <div class="modal-header" style="justify-content: center; border-bottom: 0; padding-bottom: 8px;">
+          <h2 style="display: flex; align-items: center; gap: 8px; margin: 0;">
+            <span class="material-symbols-outlined" style="color: var(--accent); font-size: 32px; vertical-align: middle;">mail</span>
+            인증 이메일 발송 완료
+          </h2>
+        </div>
+        <div style="margin: 20px 0; line-height: 1.6; color: var(--secondary-dark); font-size: 14px;">
+          입력하신 교사 이메일로 <strong>가입 인증 메일</strong>이 발송되었습니다.<br><br>
+          메일함에 수신된 링크를 클릭하여 인증을 완료하셔야 정상적으로 로그인이 가능합니다.<br>
+          인증 완료 후 다시 로그인해 주세요!
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 16px;">
+          <button id="btn-signup-confirm-ok" class="button" type="button" style="padding: 10px 32px; width: 120px;">확인</button>
+        </div>
       </div>
     </div>
 
