@@ -11,6 +11,24 @@
     href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="assets/css/style.css">
+
+  <!-- PWA 매니페스트 및 iOS 연동 메타 태그 -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="칭찬노트">
+  <link rel="apple-touch-icon" href="public/img/icon-192.png">
+
+  <!-- 서비스 워커 등록 스크립트 -->
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js")
+          .then(reg => console.log("Service Worker registered successfully:", reg.scope))
+          .catch(err => console.error("Service Worker registration failed:", err));
+      });
+    }
+  </script>
 </head>
 
 <body class="student-app">
