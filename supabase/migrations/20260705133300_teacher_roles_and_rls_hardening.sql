@@ -128,3 +128,28 @@ begin
   order by u.created_at desc;
 end;
 $$ language plpgsql;
+
+-- 8. auth.users 테이블에 신규 가입 시 첫 번째 가입자를 자동으로 admin으로 등록하는 트리거 함수
+create or replace function public.handle_first_teacher_signup()
+returns trigger as $$
+declare
+  has_roles boolean;
+begin
+  -- 테이블에 등록된 역할이 하나도 없는지 검사
+  select exists(select 1 from public.teacher_roles) into has_roles;
+  
+  if not has_roles then
+    -- 테이블이 비어 있다면 첫 가입자의 이메일을 admin으로 자동 삽입
+    insert into public.teacher_roles (email, role)
+    values (new.email, 'admin');
+  end if;
+  
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+-- 트리거 바인딩 (auth.users 테이블은 auth 스키마에 있으므로 아래와 같이 정의)
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_first_teacher_signup();

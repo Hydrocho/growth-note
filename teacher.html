@@ -426,13 +426,8 @@
             <label for="role-email">교사 이메일 주소</label>
             <input id="role-email" class="input" type="email" placeholder="email@school.kr" required>
           </div>
-          <div class="field" style="margin-top: 12px;">
-            <label for="role-type">권한 유형</label>
-            <select id="role-type" class="select" style="width: 100%; padding: 10px;">
-              <option value="praise_only">칭찬 등록 전용 (학생 관리 불가능)</option>
-              <option value="admin">최고 관리자 (모든 기능 가능)</option>
-            </select>
-          </div>
+          <!-- 권한 유형을 부교사(praise_only)로 고정 -->
+          <input id="role-type" type="hidden" value="praise_only">
           <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
             <button id="btn-cancel-teacher-role" class="button secondary" type="button" style="box-shadow: none;">취소</button>
             <button class="button" type="submit">등록 완료</button>

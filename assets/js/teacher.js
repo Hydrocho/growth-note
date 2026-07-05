@@ -1140,24 +1140,14 @@
       // Actions
       const tdActions = document.createElement("td");
       
-      const btnApproveAdmin = document.createElement("button");
-      btnApproveAdmin.className = "button";
-      btnApproveAdmin.style.padding = "6px 12px";
-      btnApproveAdmin.style.fontSize = "12px";
-      btnApproveAdmin.style.marginRight = "6px";
-      btnApproveAdmin.textContent = "최고 관리자로 승인";
-      btnApproveAdmin.type = "button";
-      btnApproveAdmin.addEventListener("click", () => approveTeacher(user.email, "admin"));
-      tdActions.appendChild(btnApproveAdmin);
-
-      const btnApprovePraise = document.createElement("button");
-      btnApprovePraise.className = "button secondary";
-      btnApprovePraise.style.padding = "6px 12px";
-      btnApprovePraise.style.fontSize = "12px";
-      btnApprovePraise.textContent = "부교사로 승인";
-      btnApprovePraise.type = "button";
-      btnApprovePraise.addEventListener("click", () => approveTeacher(user.email, "praise_only"));
-      tdActions.appendChild(btnApprovePraise);
+      const btnApprove = document.createElement("button");
+      btnApprove.className = "button";
+      btnApprove.style.padding = "6px 16px";
+      btnApprove.style.fontSize = "12px";
+      btnApprove.textContent = "교사 승인 (칭찬 전용)";
+      btnApprove.type = "button";
+      btnApprove.addEventListener("click", () => approveTeacher(user.email, "praise_only"));
+      tdActions.appendChild(btnApprove);
 
       tr.appendChild(tdActions);
       tableBody.appendChild(tr);
