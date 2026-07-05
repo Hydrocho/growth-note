@@ -2,12 +2,9 @@ const assert = require("assert");
 const fs = require("fs");
 const path = require("path");
 
-// 1. Verify index.html portal page layout
+// 1. Verify index.html student page layout
 const indexHtml = fs.readFileSync(path.join(__dirname, "../../index.html"), "utf8");
-assert(indexHtml.includes("href=\"student-login.html\""), "index.html should link to student-login.html");
-assert(indexHtml.includes("href=\"teacher.html\""), "index.html should link to teacher.html");
 assert(indexHtml.includes("스마트 칭찬 노트"), "index.html should contain brand title");
-assert(!indexHtml.includes("student-login-form"), "index.html should not contain the login form");
 
 // 2. Verify student-login.html page layout
 const loginHtml = fs.readFileSync(path.join(__dirname, "../../student-login.html"), "utf8");

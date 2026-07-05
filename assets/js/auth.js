@@ -99,7 +99,7 @@
 
       sessionStorage.removeItem("growth-note-demo-student");
       sessionStorage.setItem("growth-note-student-id", student.id);
-      window.location.href = "student.html";
+      window.location.href = "index.html";
     } catch (error) {
       setStatus(window.GrowthNoteSupabase.formatError(error), true);
     } finally {
@@ -224,7 +224,7 @@
       sessionStorage.setItem("growth-note-student-id", data.id);
 
       setTimeout(() => {
-        window.location.href = "student.html";
+        window.location.href = "index.html";
       }, 1200);
     } catch (err) {
       setRegisterStatus(window.GrowthNoteSupabase.formatError(err), true);
