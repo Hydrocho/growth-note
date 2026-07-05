@@ -9,20 +9,10 @@ create table if not exists public.teacher_roles (
 alter table public.teacher_roles enable row level security;
 
 -- 2. 최고 관리자 교사 판별 헬퍼 함수 정의 (Security Definer로 정의하여 RLS 재귀 방지)
+-- 오직 teacher_roles에 'admin'으로 등록된 경우에만 인정 (어떠한 임시 예외 허용도 없음)
 create or replace function public.is_admin_teacher()
 returns boolean security definer set search_path = public as $$
-declare
-  has_roles boolean;
 begin
-  -- 테이블에 등록된 역할이 하나도 없는지 검사 (최초 기동용)
-  select exists(select 1 from public.teacher_roles) into has_roles;
-  
-  if not has_roles then
-    -- 테이블이 비어 있다면 첫 번째 인증된 교사 접속을 임시 허용
-    return auth.role() = 'authenticated';
-  end if;
-
-  -- 테이블에 정보가 있다면 명시적으로 'admin' 권한이 등록된 이메일만 인정
   return (
     auth.role() = 'authenticated' and
     exists (
@@ -61,6 +51,7 @@ create policy "authenticated read teacher roles" on public.teacher_roles
 -- 5. 학생 테이블 RLS 정책 고도화
 -- 학생 조회: 최고 관리자 교사, 칭찬전용 교사, 학생 본인(anon)만 가능
 drop policy if exists "anon read students" on public.students;
+drop policy if exists "allow select students" on public.students;
 create policy "allow select students" on public.students
   for select using (
     auth.role() = 'anon' or
@@ -70,11 +61,13 @@ create policy "allow select students" on public.students
 
 -- 학생 삭제: 최고 관리자 교사만 가능 (일반 학생 및 칭찬전용 교사 차단)
 drop policy if exists "anon delete students" on public.students;
+drop policy if exists "allow delete students" on public.students;
 create policy "allow delete students" on public.students
   for delete using (public.is_admin_teacher());
 
 -- 학생 추가: anon(가입 시) 및 최고 관리자 교사만 가능
 drop policy if exists "anon insert students" on public.students;
+drop policy if exists "allow insert students" on public.students;
 create policy "allow insert students" on public.students
   for insert with check (auth.role() = 'anon' or public.is_admin_teacher());
 

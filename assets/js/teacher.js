@@ -97,15 +97,8 @@
   async function checkTeacherPermissions(client, email) {
     try {
       const { data: roles } = await client.from("teacher_roles").select("role, email");
-      const isTableEmpty = !roles || roles.length === 0;
 
-      if (isTableEmpty) {
-        isPraiseOnly = false;
-        isUnauthorized = false;
-        return;
-      }
-
-      const userRole = roles.find(r => r.email.toLowerCase() === email.toLowerCase());
+      const userRole = roles ? roles.find(r => r.email.toLowerCase() === email.toLowerCase()) : null;
 
       if (userRole) {
         isPraiseOnly = userRole.role === "praise_only";
