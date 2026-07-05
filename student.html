@@ -229,6 +229,26 @@
     </div>
   </div>
 
+  <!-- Modal 3: Representative Selection Confirmation Modal -->
+  <div id="rep-confirm-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="rep-confirm-title">
+    <div class="modal-content" style="max-width: 400px; text-align: center; padding: 24px; border-radius: 12px; background: #ffffff; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);">
+      <div class="modal-header" style="justify-content: center; border-bottom: none; margin-bottom: 8px;">
+        <h2 id="rep-confirm-title" style="font-size: 18px; font-weight: 800; color: var(--text); margin: 0;">대표 설정</h2>
+      </div>
+      <!-- 이미지 표시 영역 추가 -->
+      <div style="margin: 16px auto 8px; width: 120px; height: 120px; display: flex; align-items: center; justify-content: center; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <img id="rep-confirm-image" src="" alt="선택한 아이템" style="max-width: 100px; max-height: 100px; object-fit: contain;">
+      </div>
+      <!-- 등급 배지 표시 영역 -->
+      <div id="rep-confirm-tier-badge" style="font-size: 12px; font-weight: 800; padding: 4px 12px; border-radius: 9999px; display: inline-block; margin-bottom: 12px;"></div>
+      <p id="rep-confirm-message" style="color: var(--muted); font-size: 14px; font-weight: 700; margin: 8px 0 24px; line-height: 1.5;"></p>
+      <div style="display: flex; gap: 8px; width: 100%; justify-content: center;">
+        <button id="btn-rep-confirm-ok" class="button" type="button" style="padding: 10px 20px; font-weight: 800; background: var(--accent); color: #ffffff; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1;">설정</button>
+        <button id="btn-rep-confirm-cancel" class="button" type="button" style="padding: 10px 20px; font-weight: 800; background: #e2e8f0; color: #475569; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px; flex: 1;">취소</button>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="assets/js/supabase-config.js"></script>
   <script src="assets/js/supabase-client.js"></script>

@@ -48,6 +48,12 @@
   const formEditStudent = document.getElementById("form-edit-student");
   const btnBulkImport = document.getElementById("btn-bulk-import");
 
+  // Praise Result Modal Selectors
+  const modalPraiseResult = document.getElementById("modal-praise-result");
+  const btnClosePraiseResult = document.getElementById("btn-close-praise-result");
+  const btnPraiseResultOk = document.getElementById("btn-praise-result-ok");
+  const praiseResultModalBody = document.getElementById("praise-result-modal-body");
+
   // Bulk Import Modal selectors
   const modalBulk = document.getElementById("modal-bulk");
   const btnCloseBulk = document.getElementById("btn-close-bulk");
@@ -133,6 +139,8 @@
   function updateFilterOptions() {
     const prevGrade = filterGrade.value;
     const prevClass = filterClass.value;
+    const prevPraiseGrade = praiseFilterGrade ? praiseFilterGrade.value : "";
+    const prevPraiseClass = praiseFilterClass ? praiseFilterClass.value : "";
 
     const grades = new Set();
     const classes = new Set();
@@ -203,6 +211,23 @@
       filterClass.value = sortedClasses[0];
     } else {
       filterClass.value = "";
+    }
+
+    // Restore praise filter selection
+    if (praiseFilterGrade) {
+      if (prevPraiseGrade && sortedGrades.includes(prevPraiseGrade)) {
+        praiseFilterGrade.value = prevPraiseGrade;
+      } else {
+        praiseFilterGrade.value = "";
+      }
+    }
+
+    if (praiseFilterClass) {
+      if (prevPraiseClass && sortedClasses.includes(prevPraiseClass)) {
+        praiseFilterClass.value = prevPraiseClass;
+      } else {
+        praiseFilterClass.value = "";
+      }
     }
   }
 
@@ -603,18 +628,73 @@
       await loadStudents();
       renderSelectedStudentInfo();
 
-      praiseResult.classList.remove("hidden");
-      
       let resultText = `<strong>총 ${results.length}명의 학생에게 칭찬 점수(+${score} XP)가 성공적으로 지급되었습니다!</strong><br><br>`;
       results.forEach((res, index) => {
         const student = selectedList[index];
         resultText += `· ${student.school_id} ${student.name}: Lv.${res.oldLevel} → Lv.${res.newLevel} ${res.reward ? `🎁 (신규 보상 언락!)` : ""}<br>`;
       });
       
-      praiseResult.innerHTML = resultText;
+      praiseResultModalBody.innerHTML = resultText;
+      toggleModal(modalPraiseResult, true);
       setStatus(teacherStatus, "성공적으로 저장되었습니다.");
     } catch (e) {
       setStatus(teacherStatus, "칭찬 등록 오류: " + e.message, true);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function giftPetDrawOpportunity() {
+    if (selectedStudentIds.size === 0) {
+      alert("뽑기권을 부여할 학생을 먼저 선택해 주세요.");
+      return;
+    }
+
+    const selectedList = students.filter(s => selectedStudentIds.has(s.id));
+    const studentNames = selectedList.map(s => `${s.school_id} ${s.name}`).join(", ");
+    
+    const ok = window.confirm(`선택한 ${selectedList.length}명의 학생에게 각각 마이펫 추가 뽑기 기회(뽑기권)를 1회씩 부여하시겠습니까?\n\n[대상 학생]\n${studentNames}`);
+    if (!ok) return;
+
+    try {
+      setBusy(true);
+      setStatus(teacherStatus, "마이펫 뽑기권을 지급하고 있습니다...");
+
+      const client = window.GrowthNoteSupabase.getClient();
+
+      // 각 학생마다 student_logs 에 로그를 남기고, students 테이블에 dummy update를 실행하여 Realtime 알림을 강제 트리거합니다.
+      const promises = selectedList.map(async (student) => {
+        // 1. 로그 기록 추가
+        const { error: logErr } = await client.from("student_logs").insert({
+          student_id: student.id,
+          type: "pet_ticket_grant",
+          category: "pet_ticket",
+          description: "마이펫 추가 뽑기 기회 지급",
+          xp_change: 0
+        });
+        if (logErr) throw logErr;
+
+        // 2. students 테이블 dummy update로 실시간 갱신 트리거
+        const { error: updateErr } = await client.from("students")
+          .update({ total_xp: student.total_xp })
+          .eq("id", student.id);
+        if (updateErr) throw updateErr;
+      });
+
+      await Promise.all(promises);
+
+      // 선택 리스트 초기화
+      selectedStudentIds.clear();
+
+      // 학생 데이터 재로드
+      await loadStudents();
+      renderSelectedStudentInfo();
+
+      praiseResultModalBody.innerHTML = `<strong>총 ${selectedList.length}명의 학생에게 마이펫 추가 뽑기권이 성공적으로 지급되었습니다!</strong>`;
+      toggleModal(modalPraiseResult, true);
+      setStatus(teacherStatus, "성공적으로 저장되었습니다.");
+    } catch (e) {
+      setStatus(teacherStatus, "뽑기권 등록 오류: " + e.message, true);
     } finally {
       setBusy(false);
     }
@@ -846,6 +926,11 @@
   });
   btnPraiseSubmit.addEventListener("click", submitPraiseScore);
 
+  const btnPraiseGiftPet = document.getElementById("btn-praise-gift-pet");
+  if (btnPraiseGiftPet) {
+    btnPraiseGiftPet.addEventListener("click", giftPetDrawOpportunity);
+  }
+
   const btnPraiseSelectAll = document.getElementById("btn-praise-select-all");
   const btnPraiseDeselectAll = document.getElementById("btn-praise-deselect-all");
 
@@ -888,6 +973,8 @@
   btnBulkImport.addEventListener("click", () => toggleModal(modalBulk, true));
   btnCloseBulk.addEventListener("click", () => toggleModal(modalBulk, false));
   btnCancelBulk.addEventListener("click", () => toggleModal(modalBulk, false));
+  btnClosePraiseResult.addEventListener("click", () => toggleModal(modalPraiseResult, false));
+  btnPraiseResultOk.addEventListener("click", () => toggleModal(modalPraiseResult, false));
 
   // Forms submit binding
   formEditStudent.addEventListener("submit", handleEditStudent);

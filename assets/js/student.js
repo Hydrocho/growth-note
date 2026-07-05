@@ -49,6 +49,21 @@
     );
   }
 
+  function getItemTierInfo(idStr) {
+    const id = parseInt(idStr, 10);
+    if (id >= 1 && id <= 30) {
+      return { name: "Common", color: "#64748b", bg: "#f1f5f9", probability: "79.43%" };
+    } else if (id >= 31 && id <= 50) {
+      return { name: "Rare", color: "#3b82f6", bg: "#dbeafe", probability: "4.64%" };
+    } else if (id >= 51 && id <= 70) {
+      return { name: "Epic", color: "#a855f7", bg: "#f3e8ff", probability: "3.20%" };
+    } else if (id >= 71 && id <= 90) {
+      return { name: "Legendary", color: "#eab308", bg: "#fef9c3", probability: "2.45%" };
+    } else { // 91 ~ 100
+      return { name: "Mythic", color: "#ef4444", bg: "#fee2e2", probability: "1.05%" };
+    }
+  }
+
   function setStarterAvatarModalOpen(isOpen) {
     const modal = document.getElementById("starter-avatar-modal");
     if (!modal) return;
@@ -77,53 +92,80 @@
     return window.GrowthNoteRules.levelAvatarImagePath(student);
   }
 
+  let repConfirmCallback = null;
+
+  function showRepConfirmModal(message, imageSrc, idStr, callback) {
+    const modal = document.getElementById("rep-confirm-modal");
+    const msgEl = document.getElementById("rep-confirm-message");
+    const imgEl = document.getElementById("rep-confirm-image");
+    const badgeEl = document.getElementById("rep-confirm-tier-badge");
+    if (!modal || !msgEl || !imgEl || !badgeEl) return;
+
+    msgEl.textContent = message;
+    imgEl.src = imageSrc;
+
+    // 등급 정보 바인딩 (획득 확률 노출 제거)
+    const tier = getItemTierInfo(idStr);
+    badgeEl.textContent = tier.name;
+    badgeEl.style.color = tier.color;
+    badgeEl.style.backgroundColor = tier.bg;
+    badgeEl.style.border = `1px solid ${tier.color}`;
+
+    repConfirmCallback = callback;
+    modal.classList.add("active");
+  }
+
+  function closeRepConfirmModal() {
+    const modal = document.getElementById("rep-confirm-modal");
+    if (modal) modal.classList.remove("active");
+    repConfirmCallback = null;
+  }
+
   // 대표 아바타 설정
-  async function setDefaultAvatar(gender, avatarId) {
-    const ok = window.confirm("선택한 아바타를 대표 프로필 아바타로 설정하시겠습니까?");
-    if (!ok) return;
+  function setDefaultAvatar(gender, avatarId) {
+    const imageSrc = `public/img/avatarLibrary_IMG/avatarLibrary_${gender}_${avatarId}.png`;
+    showRepConfirmModal("선택한 아바타를 대표 프로필 아바타로 설정하시겠습니까?", imageSrc, avatarId, async () => {
+      try {
+        setStatus("대표 아바타를 변경하고 있습니다...");
+        const client = window.GrowthNoteSupabase.getClient();
+        const { error } = await client
+          .from("students")
+          .update({
+            current_avatar_num: `${gender}_${avatarId}`,
+            display_avatar_type: "library"
+          })
+          .eq("id", studentId);
 
-    try {
-      setStatus("대표 아바타를 변경하고 있습니다...");
-      const client = window.GrowthNoteSupabase.getClient();
-      const { error } = await client
-        .from("students")
-        .update({
-          current_avatar_num: `${gender}_${avatarId}`,
-          display_avatar_type: "library"
-        })
-        .eq("id", studentId);
-
-      if (error) throw error;
-      alert("대표 아바타가 설정되었습니다.");
-      loadDashboard();
-    } catch (e) {
-      alert("아바타 설정 실패: " + e.message);
-      setStatus("아바타 설정 오류: " + e.message, true);
-    }
+        if (error) throw error;
+        loadDashboard();
+      } catch (e) {
+        alert("아바타 설정 실패: " + e.message);
+        setStatus("아바타 설정 오류: " + e.message, true);
+      }
+    });
   }
 
   // 대표 마이펫 설정
-  async function setDefaultPet(petId) {
-    const ok = window.confirm("선택한 마이펫을 함께하는 대표 마이펫으로 설정하시겠습니까?");
-    if (!ok) return;
+  function setDefaultPet(petId) {
+    const imageSrc = `public/img/myPet_IMG/myPet_${petId}.png`;
+    showRepConfirmModal("선택한 마이펫을 함께하는 대표 마이펫으로 설정하시겠습니까?", imageSrc, petId, async () => {
+      try {
+        setStatus("대표 마이펫을 변경하고 있습니다...");
+        const client = window.GrowthNoteSupabase.getClient();
+        const { error } = await client
+          .from("students")
+          .update({
+            current_pet_num: petId
+          })
+          .eq("id", studentId);
 
-    try {
-      setStatus("대표 마이펫을 변경하고 있습니다...");
-      const client = window.GrowthNoteSupabase.getClient();
-      const { error } = await client
-        .from("students")
-        .update({
-          current_pet_num: petId
-        })
-        .eq("id", studentId);
-
-      if (error) throw error;
-      alert("대표 마이펫이 설정되었습니다.");
-      loadDashboard();
-    } catch (e) {
-      alert("마이펫 설정 실패: " + e.message);
-      setStatus("마이펫 설정 오류: " + e.message, true);
-    }
+        if (error) throw error;
+        loadDashboard();
+      } catch (e) {
+        alert("마이펫 설정 실패: " + e.message);
+        setStatus("마이펫 설정 오류: " + e.message, true);
+      }
+    });
   }
 
   function renderCollection(containerId, unlockedItems, type) {
@@ -142,13 +184,17 @@
 
         const cell = document.createElement("div");
         cell.className = `collection-item${isUnlocked ? " unlocked" : " locked"}`;
+
+        // 등급 정보 맵핑하여 클래스 부여
+        const tier = getItemTierInfo(avatarId);
+        cell.classList.add(`tier-${tier.name.toLowerCase()}`);
         
         const img = document.createElement("img");
         if (isUnlocked) {
           img.src = `public/img/avatarLibrary_IMG/avatarLibrary_${currentGender}_${avatarId}.png`;
           img.alt = `아바타 ${avatarId}`;
           cell.style.cursor = "pointer";
-          cell.title = "대표 아바타로 설정";
+          cell.title = `대표 아바타로 설정 (${tier.name})`;
           cell.addEventListener("click", () => setDefaultAvatar(currentGender, avatarId));
         } else {
           img.src = `public/img/avatarLibrary_IMG/avatarLibraryShadow_${currentGender}_${avatarId}.png`;
@@ -157,9 +203,6 @@
         }
 
         cell.appendChild(img);
-        
-
-
         container.appendChild(cell);
       }
     } else if (type === "pet") {
@@ -170,12 +213,16 @@
         const cell = document.createElement("div");
         cell.className = `collection-item${isUnlocked ? " unlocked" : " locked"}`;
 
+        // 등급 정보 맵핑하여 클래스 부여
+        const tier = getItemTierInfo(petId);
+        cell.classList.add(`tier-${tier.name.toLowerCase()}`);
+
         const img = document.createElement("img");
         if (isUnlocked) {
           img.src = `public/img/myPet_IMG/myPet_${petId}.png`;
           img.alt = `마이펫 ${petId}`;
           cell.style.cursor = "pointer";
-          cell.title = "대표 마이펫으로 설정";
+          cell.title = `대표 마이펫으로 설정 (${tier.name})`;
           cell.addEventListener("click", () => setDefaultPet(petId));
         } else {
           img.src = `public/img/myPet_IMG/myPetShadow_${petId}.png`;
@@ -184,9 +231,6 @@
         }
 
         cell.appendChild(img);
-
-
-
         container.appendChild(cell);
       }
     }
@@ -221,7 +265,7 @@
     }
   }
 
-  function renderDailyPetDraw(draws, pets) {
+  function renderDailyPetDraw(draws, pets, extraTickets) {
     const card = document.getElementById("daily-pet-draw-card");
     const button = document.getElementById("daily-pet-draw-button");
     const statusText = document.getElementById("daily-pet-draw-status");
@@ -231,7 +275,8 @@
     const hasDrawnToday = Boolean(draws && draws.length);
     const hasEveryPet = (pets || []).length >= window.GrowthNoteRules.PET_POOL.length;
 
-    button.disabled = hasDrawnToday || hasEveryPet || dailyDrawInProgress;
+    const canDraw = (!hasDrawnToday || (extraTickets || 0) > 0) && !hasEveryPet;
+    button.disabled = !canDraw || dailyDrawInProgress;
 
     if (hasEveryPet) {
       card.dataset.dailyDrawState = "complete";
@@ -241,14 +286,22 @@
     }
 
     if (hasDrawnToday) {
-      card.dataset.dailyDrawState = "done";
-      statusText.innerHTML = "오늘의 마이펫 뽑기를 완료했어요.<br>내일 다시 만나요.";
-      if (buttonText) buttonText.textContent = "완료";
+      if ((extraTickets || 0) > 0) {
+        card.dataset.dailyDrawState = "ready";
+        statusText.innerHTML = `오늘의 뽑기를 완료했지만, <strong>추가 뽑기권이 ${extraTickets}개</strong> 있어요!`;
+        if (buttonText) buttonText.textContent = dailyDrawInProgress ? "진행 중" : "추가 뽑기";
+      } else {
+        card.dataset.dailyDrawState = "done";
+        statusText.innerHTML = "오늘의 마이펫 뽑기를 완료했어요.<br>내일 다시 만나요.";
+        if (buttonText) buttonText.textContent = "완료";
+      }
       return;
     }
 
     card.dataset.dailyDrawState = "ready";
-    statusText.textContent = "하루에 한 번 새로운 마이펫을 직접 뽑을 수 있어요.";
+    statusText.innerHTML = (extraTickets || 0) > 0
+      ? `오늘의 마이펫을 뽑아보세요! (추가 뽑기권 ${extraTickets}개 보유)`
+      : "하루에 한 번 새로운 마이펫을 직접 뽑을 수 있어요.";
     if (buttonText) buttonText.textContent = dailyDrawInProgress ? "진행 중" : "뽑기";
   }
 
@@ -290,7 +343,10 @@
     const logs = model.logs;
     const progress = window.GrowthNoteRules.getLevelProgress(student.total_xp);
     const avatarPath = currentAvatarPath(student, avatars);
-    const petPath = window.GrowthNoteRules.petImagePath(pets[0] || { pet_id: student.current_pet_num || "000" });
+    const effectivePet = (student.current_pet_num && student.current_pet_num !== "000")
+      ? student.current_pet_num
+      : ((pets && pets.length) ? pets[0].pet_id : "000");
+    const petPath = window.GrowthNoteRules.petImagePath({ pet_id: effectivePet });
     const displayName = displayStudentName(student);
 
     setText("student-name", displayName);
@@ -334,7 +390,6 @@
       Object.assign(avatarEl.style, layout.avatarImage);
     }
     if (petEl) {
-      const effectivePet = pets[0] ? pets[0].pet_id : (student.current_pet_num || "000");
       if (effectivePet && effectivePet !== "000") {
         petEl.style.display = "block";
         Object.assign(petEl.style, layout.petImage);
@@ -346,7 +401,7 @@
     renderCollection("avatar-grid", avatars, "avatar");
     renderCollection("pet-grid", pets, "pet");
     renderLogs(logs);
-    renderDailyPetDraw(model.dailyDraws || [], pets);
+    renderDailyPetDraw(model.dailyDraws || [], pets, model.extraTickets || 0);
     renderAvatarDraw(student, avatars);
   }
 
@@ -360,27 +415,39 @@
       setStatus("데이터를 불러오는 중입니다.");
       const client = window.GrowthNoteSupabase.getClient();
       const today = todayKoreaDateString();
-      const [{ data: student, error: studentError }, avatarsResult, petsResult, logsResult, dailyDrawsResult] =
-        await Promise.all([
-          client.from("students").select("*").eq("id", studentId).single(),
-          client.from("unlocked_avatars").select("avatar_id, gender, unlocked_at").eq("student_id", studentId).order("unlocked_at", { ascending: false }),
-          client.from("unlocked_pets").select("pet_id, unlocked_at").eq("student_id", studentId).order("unlocked_at", { ascending: false }),
-          client.from("student_logs").select("*").eq("student_id", studentId).order("created_at", { ascending: false }).limit(10),
-          client.from("daily_pet_draws").select("pet_id, draw_date, created_at").eq("student_id", studentId).eq("draw_date", today)
-        ]);
+      const [
+        { data: student, error: studentError },
+        avatarsResult,
+        petsResult,
+        logsResult,
+        dailyDrawsResult,
+        grantedResult,
+        usedResult
+      ] = await Promise.all([
+        client.from("students").select("*").eq("id", studentId).single(),
+        client.from("unlocked_avatars").select("avatar_id, gender, unlocked_at").eq("student_id", studentId).order("unlocked_at", { ascending: false }),
+        client.from("unlocked_pets").select("pet_id, unlocked_at").eq("student_id", studentId).order("unlocked_at", { ascending: false }),
+        client.from("student_logs").select("*").eq("student_id", studentId).order("created_at", { ascending: false }).limit(10),
+        client.from("daily_pet_draws").select("pet_id, draw_date, created_at").eq("student_id", studentId).eq("draw_date", today),
+        client.from("student_logs").select("id", { count: "exact", head: true }).eq("student_id", studentId).eq("type", "pet_ticket_grant"),
+        client.from("student_logs").select("id", { count: "exact", head: true }).eq("student_id", studentId).eq("type", "extra_pet_draw")
+      ]);
 
       if (studentError) throw studentError;
       if (avatarsResult.error) throw avatarsResult.error;
       if (petsResult.error) throw petsResult.error;
       if (logsResult.error) throw logsResult.error;
       if (dailyDrawsResult.error) throw dailyDrawsResult.error;
+      if (grantedResult.error) throw grantedResult.error;
+      if (usedResult.error) throw usedResult.error;
 
       renderDashboard({
         student,
         avatars: avatarsResult.data || [],
         pets: petsResult.data || [],
         logs: logsResult.data || [],
-        dailyDraws: dailyDrawsResult.data || []
+        dailyDraws: dailyDrawsResult.data || [],
+        extraTickets: Math.max(0, (grantedResult.count || 0) - (usedResult.count || 0))
       });
       setStarterAvatarModalOpen(
         window.GrowthNoteRules.needsStarterAvatarGift(avatarsResult.data || [])
@@ -620,19 +687,24 @@
     try {
       const today = todayKoreaDateString();
       const client = window.GrowthNoteSupabase.getClient();
-      const { error: drawError } = await client.from("daily_pet_draws").insert({
-        student_id: studentId,
-        draw_date: today,
-        pet_id: reward.item.pet_id
-      });
+      const hasDrawnToday = Boolean(dashboardModel.dailyDraws && dashboardModel.dailyDraws.length);
+      const isExtraDraw = hasDrawnToday;
 
-      if (drawError) {
-        if (isDuplicateDailyDrawError(drawError)) {
-          setStatus("오늘의 마이펫 뽑기는 이미 완료했어요.");
-          loadDashboard();
-          return;
+      if (!isExtraDraw) {
+        const { error: drawError } = await client.from("daily_pet_draws").insert({
+          student_id: studentId,
+          draw_date: today,
+          pet_id: reward.item.pet_id
+        });
+
+        if (drawError) {
+          if (isDuplicateDailyDrawError(drawError)) {
+            setStatus("오늘의 마이펫 뽑기는 이미 완료했어요.");
+            loadDashboard();
+            return;
+          }
+          throw drawError;
         }
-        throw drawError;
       }
 
       const { error: petError } = await client.from("unlocked_pets").insert({
@@ -643,20 +715,15 @@
       if (petError) throw petError;
 
       const student = dashboardModel.student;
-      const hasRepresentativePet = student.current_pet_num && student.current_pet_num !== "000";
-      if (!hasRepresentativePet) {
-        const { error: updateError } = await client
-          .from("students")
-          .update({ current_pet_num: reward.item.pet_id })
-          .eq("id", studentId);
-        if (updateError) throw updateError;
-      }
+
+      const logType = isExtraDraw ? "extra_pet_draw" : "daily_pet_draw";
+      const logDesc = isExtraDraw ? "추가 마이펫 뽑기" : "오늘의 마이펫 뽑기";
 
       const { error: logError } = await client.from("student_logs").insert({
         student_id: studentId,
-        type: "daily_pet_draw",
-        category: today,
-        description: "오늘의 마이펫 뽑기",
+        type: logType,
+        category: isExtraDraw ? "extra_draw" : today,
+        description: logDesc,
         xp_change: 0,
         reward_type: "pet",
         reward_id: reward.item.pet_id
@@ -713,17 +780,7 @@
       });
       if (avatarError) throw avatarError;
 
-      const hasRepresentativeAvatar = Boolean(student.current_avatar_num);
-      if (!hasRepresentativeAvatar) {
-        const { error: updateError } = await client
-          .from("students")
-          .update({
-            current_avatar_num: `${reward.item.gender}_${reward.item.avatar_id}`,
-            display_avatar_type: "library"
-          })
-          .eq("id", studentId);
-        if (updateError) throw updateError;
-      }
+
 
       const { error: logError } = await client.from("student_logs").insert({
         student_id: studentId,
@@ -915,6 +972,21 @@
     }
     window.location.href = "student-login.html";
   });
+
+  const btnRepConfirmCancel = document.getElementById("btn-rep-confirm-cancel");
+  const btnRepConfirmOk = document.getElementById("btn-rep-confirm-ok");
+
+  if (btnRepConfirmCancel) {
+    btnRepConfirmCancel.addEventListener("click", closeRepConfirmModal);
+  }
+  if (btnRepConfirmOk) {
+    btnRepConfirmOk.addEventListener("click", () => {
+      if (typeof repConfirmCallback === "function") {
+        repConfirmCallback();
+      }
+      closeRepConfirmModal();
+    });
+  }
 
   loadDashboard();
   setupRealtimeSubscription();

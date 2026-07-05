@@ -11,7 +11,9 @@
 
   function chooseFrom(items, random) {
     if (!items.length) return null;
-    const index = Math.floor(random() * items.length);
+    // 거듭제곱 지수 10.0을 적용하여 91~100번대 획득 확률을 약 1% 수준으로 제한 (앞 번호에 강력한 쏠림)
+    const biasedRandom = Math.pow(random(), 10.0);
+    const index = Math.floor(biasedRandom * items.length);
     return items[Math.max(0, Math.min(items.length - 1, index))];
   }
 
