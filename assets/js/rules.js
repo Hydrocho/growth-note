@@ -82,6 +82,25 @@
     PET_POOL.push({ pet_id: pad3(id) });
   }
 
+  const STARTER_AVATARS = [
+    { gender: "1", avatar_id: "001" },
+    { gender: "2", avatar_id: "001" }
+  ];
+
+  function ownsStarterAvatar(avatars) {
+    const list = Array.isArray(avatars) ? avatars : [];
+    return STARTER_AVATARS.some((starter) =>
+      list.some((avatar) =>
+        String(avatar.gender) === starter.gender &&
+        String(avatar.avatar_id) === starter.avatar_id
+      )
+    );
+  }
+
+  function needsStarterAvatarGift(avatars) {
+    return !ownsStarterAvatar(avatars);
+  }
+
   function avatarImagePath(avatar) {
     const gender = avatar && avatar.gender ? avatar.gender : "1";
     const avatarId = avatar && avatar.avatar_id ? avatar.avatar_id : "001";
@@ -173,6 +192,9 @@
     LEVELS,
     AVATAR_POOL,
     PET_POOL,
+    STARTER_AVATARS,
+    ownsStarterAvatar,
+    needsStarterAvatarGift,
     calculateLevel,
     getLevelProgress,
     normalizeStudentId,

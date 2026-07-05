@@ -23,6 +23,18 @@
     return student.school_id || "";
   }
 
+  function setStarterAvatarModalOpen(isOpen) {
+    const modal = document.getElementById("starter-avatar-modal");
+    if (!modal) return;
+    modal.classList.toggle("active", Boolean(isOpen));
+  }
+
+  function setStarterAvatarButtonsDisabled(isDisabled) {
+    document.querySelectorAll("[data-starter-avatar]").forEach((button) => {
+      button.disabled = Boolean(isDisabled);
+    });
+  }
+
   function currentAvatarPath(student, avatars) {
     if (student.display_avatar_type === "library" && student.current_avatar_num) {
       const parts = student.current_avatar_num.split("_");
@@ -195,7 +207,6 @@
 
     setText("student-name", displayName);
     setText("student-id-inline", student.school_id || "");
-    setText("home-title", `${displayName}의 성장`);
     setText("level-value", progress.currentLevel);
     setText("xp-value", Number(student.total_xp || 0).toLocaleString("ko-KR"));
     setText("next-level-value", progress.nextXp ? `다음 레벨까지 ${progress.nextXp} XP` : "최고 레벨입니다.");
@@ -277,9 +288,62 @@
         pets: petsResult.data || [],
         logs: logsResult.data || []
       });
+      setStarterAvatarModalOpen(
+        window.GrowthNoteRules.needsStarterAvatarGift(avatarsResult.data || [])
+      );
       setStatus("");
     } catch (error) {
       setStatus(window.GrowthNoteSupabase.formatError(error), true);
+    }
+  }
+
+  async function grantStarterAvatar(gender) {
+    const selectedGender = String(gender) === "2" ? "2" : "1";
+    const avatarId = "001";
+
+    try {
+      setStarterAvatarButtonsDisabled(true);
+      setStatus("첫 아바타를 선물로 지급하고 있습니다...");
+
+      const client = window.GrowthNoteSupabase.getClient();
+      const { data: ownedAvatars, error: ownedError } = await client
+        .from("unlocked_avatars")
+        .select("avatar_id, gender")
+        .eq("student_id", studentId);
+
+      if (ownedError) throw ownedError;
+
+      if (!window.GrowthNoteRules.needsStarterAvatarGift(ownedAvatars || [])) {
+        setStarterAvatarModalOpen(false);
+        loadDashboard();
+        return;
+      }
+
+      const { error: insertError } = await client
+        .from("unlocked_avatars")
+        .insert({
+          student_id: studentId,
+          avatar_id: avatarId,
+          gender: selectedGender
+        });
+
+      if (insertError) throw insertError;
+
+      const { error: updateError } = await client
+        .from("students")
+        .update({
+          current_avatar_num: `${selectedGender}_${avatarId}`,
+          display_avatar_type: "library"
+        })
+        .eq("id", studentId);
+
+      if (updateError) throw updateError;
+
+      setStarterAvatarModalOpen(false);
+      loadDashboard();
+    } catch (error) {
+      setStatus("첫 아바타 지급 오류: " + error.message, true);
+      setStarterAvatarButtonsDisabled(false);
     }
   }
 
@@ -403,6 +467,12 @@
   if (resetDataBtn) {
     resetDataBtn.addEventListener("click", handleResetData);
   }
+
+  document.querySelectorAll("[data-starter-avatar]").forEach((button) => {
+    button.addEventListener("click", () => {
+      grantStarterAvatar(button.dataset.starterAvatar);
+    });
+  });
 
   // 아바타 성별 토글 버튼 바인딩
   document.querySelectorAll("[data-gender-target]").forEach((button) => {

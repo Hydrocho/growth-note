@@ -16,6 +16,19 @@ assert.strictEqual(progress.percent, 0);
 assert.strictEqual(global.GrowthNoteRules.PRAISE_ITEMS.length, 4);
 assert.strictEqual(global.GrowthNoteRules.AVATAR_POOL.length, 200);
 assert.strictEqual(global.GrowthNoteRules.PET_POOL.length, 100);
+assert.strictEqual(global.GrowthNoteRules.needsStarterAvatarGift([]), true);
+assert.strictEqual(
+  global.GrowthNoteRules.needsStarterAvatarGift([{ gender: "1", avatar_id: "001" }]),
+  false
+);
+assert.strictEqual(
+  global.GrowthNoteRules.needsStarterAvatarGift([{ gender: "2", avatar_id: "001" }]),
+  false
+);
+assert.strictEqual(
+  global.GrowthNoteRules.needsStarterAvatarGift([{ gender: "1", avatar_id: "002" }]),
+  true
+);
 assert.strictEqual(global.GrowthNoteRules.normalizeStudentId("30110"), "30110");
 assert.strictEqual(global.GrowthNoteRules.normalizeStudentId("3-1-10"), "30110");
 assert.strictEqual(global.GrowthNoteRules.normalizeStudentId("3학년 1반 10번"), "30110");

@@ -22,12 +22,14 @@
             <!-- 마이펫 이미지 (JS에서 getAvatarPetLayout 수치 반영됨) -->
             <img id="current-pet" alt="현재 마이펫" style="image-rendering: pixelated;">
           </div>
-          <div class="level-pill">Lv. <span id="level-value">1</span></div>
-          <h2 id="home-title" class="screen-title">나의 성장</h2>
           <p class="screen-copy">칭찬을 모아 아바타와 마이펫을 성장시켜요.</p>
         </section>
 
         <section class="xp-card surface-card card-3d">
+          <div class="section-row" style="margin-bottom: 8px;">
+            <span class="eyebrow">레벨</span>
+            <strong>Lv. <span id="level-value">1</span></strong>
+          </div>
           <div class="section-row">
             <span class="eyebrow">XP</span>
             <strong><span id="xp-value">0</span> XP</strong>
@@ -141,6 +143,25 @@
         <span>설정</span>
       </button>
     </nav>
+
+    <div id="starter-avatar-modal" class="modal-overlay starter-avatar-modal" aria-labelledby="starter-avatar-title" role="dialog" aria-modal="true">
+      <div class="modal-content starter-avatar-content">
+        <div class="modal-header">
+          <h2 id="starter-avatar-title">첫 아바타를 선택하세요</h2>
+        </div>
+        <p class="starter-avatar-copy">성장을 함께할 첫 아바타를 선물로 받을 수 있어요.</p>
+        <div class="starter-avatar-options">
+          <button class="starter-avatar-option" type="button" data-starter-avatar="1">
+            <img src="public/img/avatarLibrary_IMG/avatarLibrary_1_001.png" alt="첫 번째 아바타">
+            <span>이 아바타 받기</span>
+          </button>
+          <button class="starter-avatar-option" type="button" data-starter-avatar="2">
+            <img src="public/img/avatarLibrary_IMG/avatarLibrary_2_001.png" alt="두 번째 아바타">
+            <span>이 아바타 받기</span>
+          </button>
+        </div>
+      </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="assets/js/supabase-config.js"></script>

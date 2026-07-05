@@ -30,4 +30,14 @@ for (const copy of [
   assert(html.includes(copy), `student.html should explain level-up system: ${copy}`);
 }
 
+for (const copy of [
+  "id=\"starter-avatar-modal\"",
+  "data-starter-avatar=\"1\"",
+  "data-starter-avatar=\"2\"",
+  "첫 아바타를 선택하세요",
+  "성장을 함께할 첫 아바타를 선물로 받을 수 있어요."
+]) {
+  assert(html.includes(copy), `student.html should include starter avatar selection UI: ${copy}`);
+}
+
 console.log("student-layout.test.js passed");
