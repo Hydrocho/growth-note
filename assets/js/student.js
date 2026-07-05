@@ -400,6 +400,17 @@
 
       if (updateError) throw updateError;
 
+      const { error: logError } = await client.from("student_logs").insert({
+        student_id: studentId,
+        type: "starter_avatar",
+        category: "starter_avatar",
+        description: "첫 아바타 선택",
+        xp_change: 0,
+        reward_type: "avatar",
+        reward_id: `${selectedGender}_${avatarId}`
+      });
+      if (logError) throw logError;
+
       setStarterAvatarModalOpen(false);
       loadDashboard();
     } catch (error) {
@@ -410,6 +421,7 @@
 
   function openRewardDrawModal(options) {
     const modal = document.getElementById("reward-draw-modal");
+    const content = modal ? modal.querySelector(".reward-draw-content") : null;
     const title = document.getElementById("reward-draw-title");
     const copy = document.getElementById("reward-draw-copy");
     const closeButton = document.getElementById("reward-draw-close");
@@ -437,6 +449,11 @@
       if (timerId) window.clearInterval(timerId);
       count.textContent = "0";
       box.classList.add("opened");
+      if (content) {
+        content.classList.remove("revealing");
+        window.requestAnimationFrame(() => content.classList.add("revealing"));
+      }
+      if (copy) copy.hidden = true;
       box.disabled = true;
       result.hidden = false;
       resultImage.src = options.imageSrc;
@@ -455,12 +472,17 @@
     function closeModal() {
       if (timerId) window.clearInterval(timerId);
       modal.classList.remove("active");
+      if (content) content.classList.remove("revealing");
       if (typeof options.onClose === "function") options.onClose();
     }
 
     if (title) title.textContent = options.title || "선물 상자를 열어 보세요";
-    if (copy) copy.textContent = options.copy || "상자를 두드리면 더 빨리 열려요.";
+    if (copy) {
+      copy.textContent = options.copy || "상자를 두드리면 더 빨리 열려요.";
+      copy.hidden = false;
+    }
     if (closeButton) closeButton.onclick = closeModal;
+    if (content) content.classList.remove("revealing");
     box.classList.remove("opened", "tap-pop");
     box.disabled = false;
     result.hidden = true;
@@ -646,6 +668,12 @@
         .delete()
         .eq("student_id", studentId);
       if (petsErr) throw petsErr;
+
+      const { error: drawsErr } = await client
+        .from("daily_pet_draws")
+        .delete()
+        .eq("student_id", studentId);
+      if (drawsErr) throw drawsErr;
 
       // 4. students 테이블 레코드 기본값으로 초기화
       const { error: updateErr } = await client

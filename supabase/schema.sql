@@ -78,12 +78,16 @@ create policy "anon update students" on public.students for update using (true) 
 create policy "anon delete students" on public.students for delete using (true);
 create policy "anon read avatars" on public.unlocked_avatars for select using (true);
 create policy "anon insert avatars" on public.unlocked_avatars for insert with check (true);
+create policy "anon delete avatars" on public.unlocked_avatars for delete using (true);
 create policy "anon read pets" on public.unlocked_pets for select using (true);
 create policy "anon insert pets" on public.unlocked_pets for insert with check (true);
+create policy "anon delete pets" on public.unlocked_pets for delete using (true);
 create policy "anon read daily pet draws" on public.daily_pet_draws for select using (true);
 create policy "anon insert daily pet draws" on public.daily_pet_draws for insert with check (true);
+create policy "anon delete daily pet draws" on public.daily_pet_draws for delete using (true);
 create policy "anon read logs" on public.student_logs for select using (true);
 create policy "anon insert logs" on public.student_logs for insert with check (true);
+create policy "anon delete logs" on public.student_logs for delete using (true);
 
 -- Enable Realtime for public.students table to allow live dashboard updates
 alter publication supabase_realtime add table public.students;

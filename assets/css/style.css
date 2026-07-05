@@ -836,6 +836,22 @@ img {
 .reward-draw-content {
   width: min(360px, 100%);
   text-align: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.reward-draw-content.revealing {
+  animation: reward-flash 720ms ease both;
+}
+
+.reward-draw-content.revealing::after {
+  animation: reward-flash-glow 720ms ease both;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.96) 0%, rgba(255, 255, 255, 0.78) 38%, rgba(255, 255, 255, 0) 72%);
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 3;
 }
 
 .reward-draw-copy {
@@ -868,24 +884,29 @@ img {
 }
 
 .reward-draw-box.opened {
-  background: #ecfdf5;
-  transform: scale(1.03);
+  opacity: 0;
+  transform: scale(0.72);
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+
+.reward-draw-box.opened .reward-draw-gift,
+.reward-draw-box.opened .reward-draw-count {
+  opacity: 0;
 }
 
 .reward-draw-count {
   position: absolute;
-  top: 14px;
-  right: 14px;
-  min-width: 42px;
-  min-height: 42px;
+  inset: 0;
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background: #ffffff;
-  color: var(--primary);
-  font-size: 22px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #dc2626;
+  font-size: 58px;
   font-weight: 900;
-  box-shadow: var(--shadow);
+  line-height: 1;
+  text-shadow: 0 3px 0 #ffffff, 0 10px 24px rgba(220, 38, 38, 0.36);
+  z-index: 2;
 }
 
 .reward-draw-gift {
@@ -897,7 +918,15 @@ img {
   display: grid;
   gap: 8px;
   justify-items: center;
-  margin-top: 18px;
+  margin: -176px auto 0;
+  min-height: 176px;
+  place-items: center;
+  position: relative;
+  z-index: 1;
+}
+
+.reward-draw-box.opened + .reward-draw-result {
+  animation: pet-reveal 620ms ease-out both;
 }
 
 .reward-draw-result[hidden] {
@@ -1180,6 +1209,58 @@ img {
 
   50% {
     transform: scale(1.02);
+  }
+}
+
+@keyframes reward-flash {
+  0% {
+    background: var(--bg);
+  }
+
+  34% {
+    background: #ffffff;
+    box-shadow: 0 0 44px rgba(255, 255, 255, 0.95), 0 0 88px rgba(16, 185, 129, 0.24);
+  }
+
+  100% {
+    background: var(--bg);
+  }
+}
+
+@keyframes reward-flash-glow {
+  0% {
+    opacity: 0;
+    transform: scale(0.72);
+  }
+
+  36% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.32);
+  }
+}
+
+@keyframes pet-reveal {
+  0% {
+    filter: brightness(1.8) drop-shadow(0 0 20px rgba(16, 185, 129, 0.42));
+    opacity: 0;
+    transform: scale(0.5) translateY(14px);
+  }
+
+  58% {
+    filter: brightness(1.2) drop-shadow(0 0 26px rgba(16, 185, 129, 0.34));
+    opacity: 1;
+    transform: scale(1.12) translateY(-2px);
+  }
+
+  100% {
+    filter: brightness(1) drop-shadow(0 10px 18px rgba(16, 185, 129, 0.20));
+    opacity: 1;
+    transform: scale(1) translateY(0);
   }
 }
 

@@ -51,4 +51,14 @@ for (const copy of [
   assert(html.includes(copy), `student.html should include daily draw UI: ${copy}`);
 }
 
+const rulesScriptIndex = html.indexOf('src="assets/js/rules.js"');
+const rewardsScriptIndex = html.indexOf('src="assets/js/rewards.js"');
+const studentScriptIndex = html.indexOf('src="assets/js/student.js"');
+
+assert(rewardsScriptIndex !== -1, "student.html should load rewards.js for daily draw reward selection");
+assert(
+  rulesScriptIndex < rewardsScriptIndex && rewardsScriptIndex < studentScriptIndex,
+  "student.html should load rules.js, then rewards.js, then student.js"
+);
+
 console.log("student-layout.test.js passed");
