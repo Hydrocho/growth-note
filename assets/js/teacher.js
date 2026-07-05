@@ -447,6 +447,14 @@
     const gradeVal = praiseFilterGrade.value;
     const classVal = praiseFilterClass.value;
     
+    studentPraiseList.innerHTML = "";
+
+    // 학년과 반이 모두 선택된 경우에만 학생 목록 노출
+    if (!gradeVal || !classVal) {
+      studentPraiseList.innerHTML = `<p class="empty-state" style="padding: 12px; grid-column: 1 / -1; text-align: center; color: var(--muted); font-weight: 700;">학년과 반을 모두 선택해야 학생 명단이 나타납니다.</p>`;
+      return;
+    }
+
     const filtered = students.filter((student) => {
       const parsed = parseGradeClass(student.school_id);
       
@@ -464,10 +472,8 @@
       return true;
     });
 
-    studentPraiseList.innerHTML = "";
-
     if (!filtered.length) {
-      studentPraiseList.innerHTML = `<p class="empty-state" style="padding: 12px;">조회된 학생이 없습니다.</p>`;
+      studentPraiseList.innerHTML = `<p class="empty-state" style="padding: 12px; grid-column: 1 / -1; text-align: center; color: var(--muted); font-weight: 700;">조회된 학생이 없습니다.</p>`;
       return;
     }
 
@@ -835,10 +841,47 @@
     updatePraiseScoreUI();
   });
   btnPraisePlus.addEventListener("click", () => {
-    currentPraiseScore = Math.min(50, currentPraiseScore + 10);
+    currentPraiseScore = Math.min(30, currentPraiseScore + 10);
     updatePraiseScoreUI();
   });
   btnPraiseSubmit.addEventListener("click", submitPraiseScore);
+
+  const btnPraiseSelectAll = document.getElementById("btn-praise-select-all");
+  const btnPraiseDeselectAll = document.getElementById("btn-praise-deselect-all");
+
+  if (btnPraiseSelectAll) {
+    btnPraiseSelectAll.addEventListener("click", () => {
+      const searchVal = studentPraiseSearch.value.trim().toLowerCase();
+      const gradeVal = praiseFilterGrade.value;
+      const classVal = praiseFilterClass.value;
+
+      if (!gradeVal || !classVal) return;
+
+      students.forEach((student) => {
+        const parsed = parseGradeClass(student.school_id);
+        if (parsed.grade === gradeVal && parsed.class === classVal) {
+          if (searchVal) {
+            const text = `${student.school_id} ${student.name || ""}`.toLowerCase();
+            if (!text.includes(searchVal)) return;
+          }
+          if (student.id) {
+            selectedStudentIds.add(student.id);
+          }
+        }
+      });
+
+      renderPraisePanel();
+      renderSelectedStudentInfo();
+    });
+  }
+
+  if (btnPraiseDeselectAll) {
+    btnPraiseDeselectAll.addEventListener("click", () => {
+      selectedStudentIds.clear();
+      renderPraisePanel();
+      renderSelectedStudentInfo();
+    });
+  }
 
   // Modal Triggers
   btnCloseEdit.addEventListener("click", () => toggleModal(modalEdit, false));

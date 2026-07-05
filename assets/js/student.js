@@ -298,8 +298,8 @@
     setText("level-value", progress.currentLevel);
     setText("xp-value", Number(student.total_xp || 0).toLocaleString("ko-KR"));
     setText("next-level-value", progress.nextXp ? `다음 레벨까지 ${progress.nextXp} XP` : "최고 레벨입니다.");
-    setText("reward-count", avatars.length + pets.length);
-    setText("recent-praise-count", logs.length);
+    setText("avatar-count", avatars.length);
+    setText("pet-count", pets.length);
     setText("settings-student-id", student.school_id || "-");
     setText("settings-student-xp", `${Number(student.total_xp || 0).toLocaleString("ko-KR")} XP (Lv. ${progress.currentLevel})`);
     setText("settings-student-avatar-count", `${avatars.length} / 200`);
@@ -410,6 +410,12 @@
           },
           (payload) => {
             if (payload.new && payload.new.id === studentId) {
+              // 아바타/마이펫 뽑기 모달이 열려 있을 때는 실시간 갱신을 무시하여
+              // 홈 화면의 이미지와 정보가 미리 바뀌는 버그를 방지합니다.
+              const drawModal = document.getElementById("reward-draw-modal");
+              if (drawModal && drawModal.classList.contains("active")) {
+                return;
+              }
               loadDashboard();
             }
           }
@@ -507,6 +513,10 @@
       window.requestAnimationFrame(() => box.classList.add("tap-pop"));
     }
 
+    const confirmText = document.getElementById("reward-draw-confirm-text");
+    const setRepBtn = document.getElementById("reward-draw-set-rep");
+    const keepBtn = document.getElementById("reward-draw-keep");
+
     function reveal() {
       if (isRevealed) return;
       isRevealed = true;
@@ -524,6 +534,38 @@
       resultImage.alt = options.resultTitle || "";
       resultTitle.textContent = options.resultTitle || "";
       resultCopy.textContent = options.resultCopy || "";
+
+      // 모달 내부에서 대표 설정 질문 및 버튼 동작 바인딩
+      if (options.rewardId && confirmText && setRepBtn && keepBtn) {
+        const typeKo = options.type === "avatar" ? "아바타" : "마이펫";
+        confirmText.textContent = `방금 뽑은 ${typeKo}를 나의 대표 ${typeKo}로 설정하시겠습니까?`;
+
+        setRepBtn.disabled = false;
+        keepBtn.disabled = false;
+
+        setRepBtn.onclick = async () => {
+          setRepBtn.disabled = true;
+          keepBtn.disabled = true;
+          try {
+            const client = window.GrowthNoteSupabase.getClient();
+            const updateFields = options.type === "avatar"
+              ? { current_avatar_num: options.rewardId, display_avatar_type: "library" }
+              : { current_pet_num: options.rewardId };
+            await client
+              .from("students")
+              .update(updateFields)
+              .eq("id", studentId);
+          } catch (err) {
+            console.error("대표 설정 실패:", err);
+          } finally {
+            closeModal();
+          }
+        };
+
+        keepBtn.onclick = () => {
+          closeModal();
+        };
+      }
     }
 
     function tick(amount) {
@@ -600,11 +642,15 @@
       });
       if (petError) throw petError;
 
-      const { error: updateError } = await client
-        .from("students")
-        .update({ current_pet_num: reward.item.pet_id })
-        .eq("id", studentId);
-      if (updateError) throw updateError;
+      const student = dashboardModel.student;
+      const hasRepresentativePet = student.current_pet_num && student.current_pet_num !== "000";
+      if (!hasRepresentativePet) {
+        const { error: updateError } = await client
+          .from("students")
+          .update({ current_pet_num: reward.item.pet_id })
+          .eq("id", studentId);
+        if (updateError) throw updateError;
+      }
 
       const { error: logError } = await client.from("student_logs").insert({
         student_id: studentId,
@@ -619,6 +665,7 @@
 
       openRewardDrawModal({
         type: "pet",
+        rewardId: reward.item.pet_id,
         title: "오늘의 마이펫",
         copy: "상자를 두드리면 더 빨리 열려요.",
         resultTitle: `마이펫 ${reward.item.pet_id}`,
@@ -666,14 +713,17 @@
       });
       if (avatarError) throw avatarError;
 
-      const { error: updateError } = await client
-        .from("students")
-        .update({
-          current_avatar_num: `${reward.item.gender}_${reward.item.avatar_id}`,
-          display_avatar_type: "library"
-        })
-        .eq("id", studentId);
-      if (updateError) throw updateError;
+      const hasRepresentativeAvatar = Boolean(student.current_avatar_num);
+      if (!hasRepresentativeAvatar) {
+        const { error: updateError } = await client
+          .from("students")
+          .update({
+            current_avatar_num: `${reward.item.gender}_${reward.item.avatar_id}`,
+            display_avatar_type: "library"
+          })
+          .eq("id", studentId);
+        if (updateError) throw updateError;
+      }
 
       const { error: logError } = await client.from("student_logs").insert({
         student_id: studentId,
@@ -688,6 +738,7 @@
 
       openRewardDrawModal({
         type: "avatar",
+        rewardId: `${reward.item.gender}_${reward.item.avatar_id}`,
         title: "새로운 아바타",
         copy: "상자를 두드리면 더 빨리 열려요.",
         resultTitle: `아바타 해금!`,

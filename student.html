@@ -50,17 +50,17 @@
 
       <section class="summary-grid">
         <article class="summary-card card-3d">
-          <span class="material-symbols-outlined">backpack</span>
+          <span class="material-symbols-outlined">face</span>
           <div>
-            <p>보유 보상</p>
-            <strong id="reward-count">0</strong>
+            <p>보유 아바타</p>
+            <strong id="avatar-count">0</strong>
           </div>
         </article>
         <article class="summary-card card-3d">
-          <span class="material-symbols-outlined">workspace_premium</span>
+          <span class="material-symbols-outlined">pets</span>
           <div>
-            <p>최근 칭찬</p>
-            <strong id="recent-praise-count">0</strong>
+            <p>보유 마이펫</p>
+            <strong id="pet-count">0</strong>
           </div>
         </article>
       </section>
@@ -220,6 +220,11 @@
         <img id="reward-draw-result-image" alt="">
         <strong id="reward-draw-result-title"></strong>
         <p id="reward-draw-result-copy"></p>
+        <p id="reward-draw-confirm-text" style="margin: 12px 0 4px; font-size: 13px; font-weight: 700; color: var(--text);"></p>
+        <div style="display: flex; gap: 8px; width: 100%; margin-top: 8px; justify-content: center;">
+          <button id="reward-draw-set-rep" class="button" type="button" style="padding: 8px 16px; font-weight: 800; background: var(--accent); color: #ffffff; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px;">대표로 설정</button>
+          <button id="reward-draw-keep" class="button" type="button" style="padding: 8px 16px; font-weight: 800; background: #e2e8f0; color: #475569; border: 0; border-radius: 6px; cursor: pointer; font-size: 13px;">그냥 닫기</button>
+        </div>
       </div>
     </div>
   </div>
