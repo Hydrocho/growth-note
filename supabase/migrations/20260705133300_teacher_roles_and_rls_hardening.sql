@@ -107,3 +107,24 @@ create trigger enforce_student_update_permissions
   before update on public.students
   for each row
   execute function public.check_student_update_permissions();
+
+-- 7. 가입했으나 아직 역할이 지정되지 않은 교사 대기 목록 반환 함수 (RPC)
+create or replace function public.get_pending_teachers()
+returns table (id uuid, email text, created_at timestamptz)
+security definer set search_path = public, auth as $$
+begin
+  -- 호출자가 최고 관리자 교사인지 RLS 보안 확인
+  if not public.is_admin_teacher() then
+    raise exception '권한이 없습니다. 최고 관리자 계정이 아닙니다.';
+  end if;
+
+  return query
+  select u.id, u.email::text, u.created_at
+  from auth.users u
+  where not exists (
+    select 1 from public.teacher_roles r
+    where lower(r.email) = lower(u.email)
+  )
+  order by u.created_at desc;
+end;
+$$ language plpgsql;

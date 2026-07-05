@@ -243,13 +243,31 @@
           <div class="panel-header-row">
             <div>
               <h1>교사 권한 관리</h1>
-              <span class="count-badge">칭찬 등록 기능만 가능한 부교사 이메일을 지정하고 관리합니다.</span>
+              <span class="count-badge">교사 권한을 승인하거나 관리합니다.</span>
             </div>
             <div class="nav-actions">
-              <button id="btn-add-teacher-role" class="button" type="button">부교사 권한 추가</button>
+              <button id="btn-add-teacher-role" class="button" type="button">부교사 권한 수동 추가</button>
             </div>
           </div>
           
+          <!-- 승인 대기 중인 교사 목록 -->
+          <h2 style="font-size: 15px; font-weight: 700; margin-top: 24px; margin-bottom: 8px; color: var(--text-muted);">승인 대기 교사 목록</h2>
+          <div class="data-table-container" style="margin-bottom: 28px;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>이메일 주소</th>
+                  <th>가입 일자</th>
+                  <th>승인 권한 지정</th>
+                </tr>
+              </thead>
+              <tbody id="pending-teachers-table-body">
+                <!-- JS 동적 로드 -->
+              </tbody>
+            </table>
+          </div>
+
+          <h2 style="font-size: 15px; font-weight: 700; margin-bottom: 8px; color: var(--text-muted);">등록된 교사 목록</h2>
           <div class="data-table-container">
             <table class="data-table">
               <thead>

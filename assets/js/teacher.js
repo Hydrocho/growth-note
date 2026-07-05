@@ -89,7 +89,8 @@
   const adminGateSubtitle = document.getElementById("admin-gate-subtitle");
 
   let students = [];
-  let teacherRolesList = [];
+  let teacherRolesList = [];
+  let pendingTeachersList = [];
   let isPraiseOnly = false;
   let isUnauthorized = false;
 
@@ -159,6 +160,7 @@
       renderStudentTable();
     } else if (tabName === "settings") {
       loadTeacherRoles();
+      loadPendingTeachers();
     }
   }
 
@@ -1088,6 +1090,107 @@
     });
   }
 
+  // Load Pending Teachers from auth.users (who have no role assigned)
+  async function loadPendingTeachers() {
+    if (isPraiseOnly) return;
+
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+      const { data, error } = await client.rpc("get_pending_teachers");
+
+      if (error) throw error;
+      
+      pendingTeachersList = data || [];
+      renderPendingTeachersTable();
+    } catch (err) {
+      console.error("Failed to load pending teachers:", err);
+    }
+  }
+
+  // Render Pending Teachers Table
+  function renderPendingTeachersTable() {
+    const tableBody = document.getElementById("pending-teachers-table-body");
+    if (!tableBody) return;
+
+    tableBody.innerHTML = "";
+
+    if (!pendingTeachersList.length) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="3" class="empty-state" style="text-align: center; padding: 20px; font-weight: 700; color: var(--muted);">가입 대기 중인 교사 계정이 없습니다.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    pendingTeachersList.forEach((user) => {
+      const tr = document.createElement("tr");
+
+      // Email
+      const tdEmail = document.createElement("td");
+      tdEmail.textContent = user.email;
+      tdEmail.style.fontWeight = "700";
+      tr.appendChild(tdEmail);
+
+      // Created At
+      const tdDate = document.createElement("td");
+      tdDate.textContent = new Date(user.created_at).toLocaleString("ko-KR");
+      tr.appendChild(tdDate);
+
+      // Actions
+      const tdActions = document.createElement("td");
+      
+      const btnApproveAdmin = document.createElement("button");
+      btnApproveAdmin.className = "button";
+      btnApproveAdmin.style.padding = "6px 12px";
+      btnApproveAdmin.style.fontSize = "12px";
+      btnApproveAdmin.style.marginRight = "6px";
+      btnApproveAdmin.textContent = "최고 관리자로 승인";
+      btnApproveAdmin.type = "button";
+      btnApproveAdmin.addEventListener("click", () => approveTeacher(user.email, "admin"));
+      tdActions.appendChild(btnApproveAdmin);
+
+      const btnApprovePraise = document.createElement("button");
+      btnApprovePraise.className = "button secondary";
+      btnApprovePraise.style.padding = "6px 12px";
+      btnApprovePraise.style.fontSize = "12px";
+      btnApprovePraise.textContent = "부교사로 승인";
+      btnApprovePraise.type = "button";
+      btnApprovePraise.addEventListener("click", () => approveTeacher(user.email, "praise_only"));
+      tdActions.appendChild(btnApprovePraise);
+
+      tr.appendChild(tdActions);
+      tableBody.appendChild(tr);
+    });
+  }
+
+  // Approve Teacher and Grant Role
+  async function approveTeacher(email, role) {
+    if (!window.confirm(`${email} 교사를 ${role === 'admin' ? '최고 관리자' : '부교사(칭찬 등록 전용)'}(으)로 승인하시겠습니까?`)) {
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const client = window.GrowthNoteSupabase.getClient();
+      const { error } = await client
+        .from("teacher_roles")
+        .insert({
+          email,
+          role
+        });
+
+      if (error) throw error;
+
+      alert(`${email} 교사가 정상 승인되었습니다.`);
+      await Promise.all([loadTeacherRoles(), loadPendingTeachers()]);
+    } catch (err) {
+      alert("승인 오류: " + err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   // Delete Teacher Role
   async function deleteTeacherRole(email) {
     if (!window.confirm(`${email} 교사의 지정 권한을 삭제하시겠습니까?\n(삭제 시 해당 이메일은 최고 관리자 권한으로 환원됩니다.)`)) {
@@ -1105,7 +1208,7 @@
       if (error) throw error;
 
       alert("권한이 정상적으로 해제되었습니다.");
-      await loadTeacherRoles();
+      await Promise.all([loadTeacherRoles(), loadPendingTeachers()]);
     } catch (err) {
       alert("권한 삭제 오류: " + err.message);
     } finally {
@@ -1139,7 +1242,7 @@
       document.getElementById("role-email").value = "";
       toggleModal(modalTeacherRole, false);
       alert(`${email} 교사가 성공적으로 등록되었습니다.`);
-      await loadTeacherRoles();
+      await Promise.all([loadTeacherRoles(), loadPendingTeachers()]);
     } catch (err) {
       alert("권한 등록 오류: " + err.message);
     } finally {
