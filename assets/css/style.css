@@ -708,6 +708,13 @@ img {
   object-fit: contain; /* 비율을 유지하면서 박스 크기에 맞춰 피팅 */
 }
 
+/* 획득한 컬러 아바타/마이펫은 이미지 자체의 여백이 없어 비대해 보이므로, */
+/* 미획득 실루엣 이미지(여백이 많음)와 시각적 크기를 맞추기 위해 크기를 조절합니다. */
+.collection-item.unlocked img {
+  width: 72%;
+  height: 72%;
+}
+
 .empty-state {
   grid-column: 1 / -1;
   margin: 0;
