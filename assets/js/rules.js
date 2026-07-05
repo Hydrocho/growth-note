@@ -113,6 +113,61 @@
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   }
 
+  /**
+   * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   * [강력 경고] 절대로 이 함수의 반환값(위치, 크기, 정렬 등 레이아웃 수치)을 변경하지 마십시오!
+   * 이 값들은 아바타와 마이펫을 차트 영역에 정밀하게 배치하여 겹쳐 그리는 데 사용되는 최적화된 수치입니다.
+   * 임의로 수정할 시 전체 레이아웃 정렬이 완전히 어긋나거나 이미지 캡처/렌더링 시 심각한 UI 오류가 발생합니다.
+   * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   */
+  function getAvatarPetLayout(settings) {
+    const s = settings || {};
+    const chartY = s.chartY || 0;
+    const chartX = s.chartX || 0;
+    const chartSize = s.chartSize || 200;
+    const avatarY = s.avatarY || 0;
+    const avatarX = s.avatarX || 0;
+    const avatarSize = s.avatarSize || 120;
+    const petY = s.petY || 0;
+    const petX = s.petX || 0;
+    const petSize = s.petSize || 80;
+
+    // ReceiptCore.LAYOUT.PET 의 기본 x, y 오프셋 백업값
+    const receiptPetX = typeof s.receiptPetX === "number" ? s.receiptPetX : 0;
+    const receiptPetY = typeof s.receiptPetY === "number" ? s.receiptPetY : 0;
+
+    return {
+      radarChart: {
+        position: "absolute",
+        top: `${115 + chartY}px`,
+        left: `${168 + chartX}px`,
+        width: `${chartSize}px`,
+        height: `${chartSize}px`,
+        transform: "translate(-50%, -50%)",
+        zIndex: 50
+      },
+      avatarImage: {
+        position: "absolute",
+        bottom: `${-avatarY}px`,
+        left: `${168 + avatarX}px`,
+        height: `${avatarSize}px`,
+        width: "auto",
+        objectFit: "contain",
+        zIndex: 20
+      },
+      petImage: {
+        position: "absolute",
+        bottom: `${-petY}px`,
+        left: `${168 + petX}px`,
+        transform: `translate(${receiptPetX}px, ${receiptPetY}px)`,
+        width: "auto",
+        height: "auto",
+        objectFit: "contain",
+        zIndex: 30
+      }
+    };
+  }
+
   root.GrowthNoteRules = {
     PRAISE_ITEMS,
     LEVELS,
@@ -124,6 +179,7 @@
     avatarImagePath,
     levelAvatarImagePath,
     petImagePath,
-    hashPin
+    hashPin,
+    getAvatarPetLayout
   };
 })(typeof window !== "undefined" ? window : globalThis);

@@ -473,24 +473,30 @@ img {
 .progress-fill::after {
   content: "";
   position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background-image: linear-gradient(
-    45deg,
-    rgba(255, 255, 255, 0.15) 25%,
-    transparent 25%,
-    transparent 50%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.15) 75%,
-    transparent 75%,
-    transparent
-  );
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: linear-gradient(45deg,
+      rgba(255, 255, 255, 0.15) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.15) 75%,
+      transparent 75%,
+      transparent);
   background-size: 20px 20px;
   animation: progress-stripes 2s linear infinite;
 }
 
 @keyframes progress-stripes {
-  from { background-position: 0 0; }
-  to { background-position: 40px 0; }
+  from {
+    background-position: 0 0;
+  }
+
+  to {
+    background-position: 40px 0;
+  }
 }
 
 /* Bento Summary Grid */
@@ -583,7 +589,7 @@ img {
   margin-bottom: 16px;
   padding: 6px;
   border-radius: 8px;
-  background: var(--surface-high);
+  background: var(--surface-highest);
 }
 
 .segment {
@@ -591,22 +597,38 @@ img {
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: var(--muted);
+  color: var(--secondary-dark);
   font-weight: 800;
   cursor: pointer;
   transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-.segment.active {
-  background: var(--bg);
-  color: var(--primary);
-  box-shadow: 0 2px 8px rgba(6, 78, 59, 0.05);
+
+/* Black Theme: Gender (검은색 테마) */
+.segmented-control.theme-black {
+  background: var(--surface-highest);
+}
+
+.segmented-control.theme-black .segment {
+  color: var(--secondary-dark);
+  min-height: auto;
+}
+
+.segmented-control.theme-black .segment.active {
+  background: #000000;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Collection Tabs (아바타/마이펫) - 높이 1.2배 상향 조정 */
+.segmented-control.collection-tabs .segment {
+  min-height: 30px;
+  font-size: 14px;
 }
 
 /* Collections Grid */
 .collection-grid {
   display: none;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: 12px;
 }
 
@@ -614,16 +636,27 @@ img {
   display: grid;
 }
 
+#avatar-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+#pet-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
 .collection-item {
-  min-height: 116px;
-  display: grid;
-  place-items: center;
+  width: 100%;
+  height: 86px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid #f1f5f9;
   border-radius: 8px;
   background: var(--bg);
-  padding: 12px;
+  padding: 6px;
   box-shadow: var(--shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
 }
 
 .collection-item:hover {
@@ -633,7 +666,10 @@ img {
 }
 
 .collection-item img {
-  max-height: 90px;
+  max-width: 85%;
+  max-height: 85%;
+  width: auto;
+  height: auto;
   object-fit: contain;
 }
 
@@ -750,7 +786,7 @@ img {
 }
 
 .bottom-nav-item:hover {
-  background: #fff7ed;
+  background: #ecfdf5;
   color: var(--primary);
 }
 
@@ -884,9 +920,17 @@ img {
 
 /* Animations */
 @keyframes float {
-  0% { transform: translateY(0px); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0px); }
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
 }
 
 .animate-float {
@@ -894,8 +938,15 @@ img {
 }
 
 @keyframes pulse-soft {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.02);
+  }
 }
 
 .animate-pulse-soft {
@@ -903,6 +954,7 @@ img {
 }
 
 @media (max-width: 760px) {
+
   .topbar,
   .teacher-layout,
   .teacher-stats,
@@ -1174,14 +1226,13 @@ img {
   .admin-shell {
     grid-template-columns: 1fr;
   }
-  
+
   .admin-sidebar {
     border-right: 0;
     border-bottom: 1px solid var(--surface-highest);
   }
-  
+
   .praise-layout {
     grid-template-columns: 1fr;
   }
 }
-

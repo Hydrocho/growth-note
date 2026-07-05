@@ -2,8 +2,9 @@
 -- DATABASE SCHEMA CHANGELOG
 -- ==========================================
 -- 2026-07-05:
---   1. 테스트 계정(000000 / 0176)의 insert 구문 완전 삭제
---   2. 학생 이름(name) 및 별명(nickname) 필드는 서버 비저장 방침에 따라 
+--   1. 실시간 대시보드 연동을 위한 students 테이블 Realtime 활성화 쿼리 추가
+--   2. 테스트 계정(000000 / 0176)의 insert 구문 완전 삭제
+--   3. 학생 이름(name) 및 별명(nickname) 필드는 서버 비저장 방침에 따라 
 --      Supabase 인서트 시 제외되며, 테이블 상에서는 호환성을 위해 null 허용으로 유지
 -- ==========================================
 
@@ -71,3 +72,6 @@ create policy "anon read pets" on public.unlocked_pets for select using (true);
 create policy "anon insert pets" on public.unlocked_pets for insert with check (true);
 create policy "anon read logs" on public.student_logs for select using (true);
 create policy "anon insert logs" on public.student_logs for insert with check (true);
+
+-- Enable Realtime for public.students table to allow live dashboard updates
+alter publication supabase_realtime add table public.students;

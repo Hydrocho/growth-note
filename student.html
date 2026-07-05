@@ -16,20 +16,11 @@
 
       <section class="tab-panel active" data-tab-panel="home">
         <section class="avatar-hero surface-card">
-          <div class="avatar-stage">
-            <svg viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="45" fill="none" stroke="var(--surface-highest)" stroke-width="8"></circle>
-              <circle id="xp-progress-circle" cx="50" cy="50" r="45" fill="none" stroke="url(#xp-gradient)" stroke-width="8" stroke-dasharray="282.74" stroke-dashoffset="282.74" stroke-linecap="round" style="transition: stroke-dashoffset 0.6s ease;"></circle>
-              <defs>
-                <linearGradient id="xp-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="#10b981"></stop>
-                  <stop offset="100%" stop-color="#6ee7b7"></stop>
-                </linearGradient>
-              </defs>
-            </svg>
-            <div class="avatar-inner animate-pulse-soft">
-              <img id="current-avatar" alt="현재 아바타">
-            </div>
+          <div class="avatar-stage" style="position: relative; width: 100%; height: 230px; overflow: visible; display: block; border-radius: 0; background: none; box-shadow: none;">
+            <!-- 아바타 이미지 (JS에서 getAvatarPetLayout 수치 반영됨) -->
+            <img id="current-avatar" alt="현재 아바타" style="image-rendering: pixelated;">
+            <!-- 마이펫 이미지 (JS에서 getAvatarPetLayout 수치 반영됨) -->
+            <img id="current-pet" alt="현재 마이펫" style="image-rendering: pixelated;">
           </div>
           <div class="level-pill">Lv. <span id="level-value">1</span></div>
           <h2 id="home-title" class="screen-title">나의 성장</h2>
@@ -64,13 +55,7 @@
           </article>
         </section>
 
-        <section class="pet-card surface-card card-3d">
-          <div>
-            <span class="eyebrow">MY PET</span>
-            <h2>함께하는 마이펫</h2>
-          </div>
-          <img id="current-pet" alt="현재 마이펫">
-        </section>
+
       </section>
 
       <section class="tab-panel" data-tab-panel="collection">
@@ -78,9 +63,13 @@
           <h2>보관함</h2>
           <p>칭찬을 받을 때마다 새 보상이 열립니다.</p>
         </div>
-        <div class="segmented-control" role="tablist" aria-label="보관함 종류">
+        <div class="segmented-control theme-black collection-tabs" role="tablist" aria-label="보관함 종류">
           <button class="segment active" type="button" data-collection-target="avatar">아바타</button>
           <button class="segment" type="button" data-collection-target="pet">마이펫</button>
+        </div>
+        <div id="avatar-gender-toggle-container" class="segmented-control theme-black" style="display: flex; gap: 0; margin-bottom: 12px; justify-content: flex-end; width: 90px; margin-left: auto; padding: 3px;">
+          <button class="segment active" type="button" data-gender-target="1" style="font-size: 13px; font-weight: 700; flex: 1; text-align: center; padding: 4px 0;">남</button>
+          <button class="segment" type="button" data-gender-target="2" style="font-size: 13px; font-weight: 700; flex: 1; text-align: center; padding: 4px 0;">여</button>
         </div>
         <div id="avatar-grid" class="collection-grid active" data-collection-panel="avatar"></div>
         <div id="pet-grid" class="collection-grid" data-collection-panel="pet"></div>
@@ -101,15 +90,23 @@
         </div>
         <section class="surface-card settings-list">
           <div class="metric-row">
-            <span class="metric-label">학생</span>
-            <strong id="settings-student-name">-</strong>
-          </div>
-          <div class="metric-row">
             <span class="metric-label">학번</span>
             <strong id="settings-student-id">-</strong>
           </div>
-
+          <div class="metric-row">
+            <span class="metric-label">현재 점수</span>
+            <strong id="settings-student-xp">-</strong>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">보유 아바타</span>
+            <strong id="settings-student-avatar-count">-</strong>
+          </div>
+          <div class="metric-row">
+            <span class="metric-label">보유 마이펫</span>
+            <strong id="settings-student-pet-count">-</strong>
+          </div>
         </section>
+        <button id="reset-data-button" class="button full-width" type="button" style="background: #000000; color: #ffffff; border: 1px solid #000000; margin-bottom: 12px; font-weight: 700;">데이터 초기화</button>
         <button id="logout-button" class="button danger full-width" type="button">로그아웃</button>
       </section>
     </main>

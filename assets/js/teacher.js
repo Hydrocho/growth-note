@@ -60,6 +60,7 @@
   let currentPraiseScore = 10;
   let activeTab = "students"; // "students" or "praise"
   let busy = false;
+  let realtimeChannel = null;
 
   function setStatus(target, message, isError) {
     if (!target) return;
@@ -202,6 +203,29 @@
       filterClass.value = sortedClasses[0];
     } else {
       filterClass.value = "";
+    }
+  }
+
+  // Setup Supabase Realtime Subscription for students table changes
+  function setupRealtimeSubscription() {
+    if (realtimeChannel) {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    }
+
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+      realtimeChannel = client
+        .channel("students-realtime-changes")
+        .on("postgres_changes", { event: "*", schema: "public", table: "students" }, (payload) => {
+          // 실시간으로 가입/수정/삭제 등 감지 시 학생 리스트만 리로드 (바쁜 상태가 아닐 때)
+          if (!busy) {
+            loadStudents();
+          }
+        })
+        .subscribe();
+    } catch (e) {
+      console.error("Realtime subscription failed:", e);
     }
   }
 
@@ -788,6 +812,7 @@
     adminGate.classList.add("hidden");
     teacherApp.classList.remove("hidden");
     loadStudents();
+    setupRealtimeSubscription();
   });
 
   // Tab Menu Bindings
@@ -832,6 +857,10 @@
     teacherApp.classList.add("hidden");
     adminGate.classList.remove("hidden");
     setStatus(adminStatus, "로그아웃 되었습니다.");
+    if (realtimeChannel) {
+      realtimeChannel.unsubscribe();
+      realtimeChannel = null;
+    }
   });
 
 })();
