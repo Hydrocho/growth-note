@@ -18,11 +18,13 @@ for (const copy of [
 }
 
 for (const copy of [
-  "font-size: 58px",
+  "top: 12px",
+  "right: 12px",
+  "font-size: 30px",
   "color: #dc2626",
-  "place-items: center"
+  "background: rgba(255, 255, 255, 0.92)"
 ]) {
-  assert(css.includes(copy), `reward draw count should be large and centered: ${copy}`);
+  assert(css.includes(copy), `reward draw count should be compact and visible: ${copy}`);
 }
 
 assert(
@@ -40,6 +42,14 @@ assert(
 assert(
   js.includes("copy.hidden = false"),
   "student.js should show the helper copy again when the modal is reused"
+);
+assert(
+  js.includes("window.setInterval(() => tick(1), 1000)"),
+  "student.js should count down automatically once per second"
+);
+assert(
+  js.includes("box.onclick = () => tick(2)"),
+  "student.js should keep tap acceleration for opening the box"
 );
 
 console.log("reward-draw-effects.test.js passed");

@@ -240,7 +240,7 @@
 
     if (hasDrawnToday) {
       card.dataset.dailyDrawState = "done";
-      statusText.textContent = "오늘의 마이펫 뽑기를 완료했어요. 내일 다시 만나요.";
+      statusText.innerHTML = "오늘의 마이펫 뽑기를 완료했어요.<br>내일 다시 만나요.";
       if (buttonText) buttonText.textContent = "완료";
       return;
     }
@@ -494,7 +494,7 @@
 
     box.onclick = () => tick(2);
     modal.classList.add("active");
-    timerId = window.setInterval(() => tick(1), 650);
+    timerId = window.setInterval(() => tick(1), 1000);
   }
 
   async function drawDailyPet() {
