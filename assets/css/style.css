@@ -1647,25 +1647,6 @@ img {
   .admin-shell {
     grid-template-columns: 1fr;
   }
-
-  transition: all 0.2s ease;
-  text-align: left;
-}
-
-.admin-nav-item:hover {
-  background: var(--surface-high);
-  color: var(--ink);
-}
-
-.admin-nav-item.active {
-  background: var(--primary);
-  color: white;
-  box-shadow: 0 4px 12px rgba(6, 78, 59, 0.15);
-}
-
-.admin-main {
-  padding: 32px 40px;
-  overflow-y: auto;
 }
 
 .panel-header-row {
