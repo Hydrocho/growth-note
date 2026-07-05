@@ -784,9 +784,15 @@ img {
   font-weight: 700;
 }
 
+/* 레벨 및 보상 안내 스타일 개편 */
 .level-guide-card {
-  display: grid;
-  gap: 10px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--bg);
+  border-radius: 12px;
+  border: 1px solid var(--surface-highest);
   margin-bottom: 20px;
 }
 
@@ -794,37 +800,127 @@ img {
   display: flex;
   align-items: center;
   gap: 8px;
+  border-bottom: 1px solid var(--surface-high);
+  padding-bottom: 12px;
+  margin-bottom: 4px;
 }
 
 .level-guide-header .material-symbols-outlined {
   color: var(--accent);
-  font-size: 22px;
+  font-size: 24px;
   font-variation-settings: "FILL" 1;
 }
 
 .level-guide-header h3 {
   margin: 0;
-  color: var(--text);
-  font-size: 16px;
+  color: var(--ink);
+  font-size: 18px;
   font-weight: 800;
 }
 
-.level-guide-card p {
-  margin: 0;
-  color: var(--text);
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1.5;
+.guide-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.level-guide-list {
-  display: grid;
+.guide-subtitle {
+  display: flex;
+  align-items: center;
   gap: 6px;
   margin: 0;
-  padding-left: 18px;
-  color: var(--muted);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--primary);
+}
+
+.guide-subtitle .material-symbols-outlined {
+  font-size: 18px;
+}
+
+.guide-desc {
+  margin: 0;
   font-size: 13px;
-  line-height: 1.5;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.level-rule-box {
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--surface-high);
+}
+
+.level-rule-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rule-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+}
+
+.rule-value {
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.rule-hint {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  margin-left: 4px;
+}
+
+.reward-info-box {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--surface-high);
+  padding: 12px;
+  border-radius: 8px;
+}
+
+.reward-info-box .material-symbols-outlined {
+  font-size: 24px;
+  padding: 8px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.reward-info-box .material-symbols-outlined.icon-avatar {
+  color: #3b82f6;
+  background: #eff6ff;
+}
+
+.reward-info-box .material-symbols-outlined.icon-pet {
+  color: #ec4899;
+  background: #fdf2f8;
+}
+
+.reward-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.reward-info-text strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.reward-info-text span {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .reward-draw-modal {

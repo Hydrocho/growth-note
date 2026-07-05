@@ -1,11 +1,11 @@
 (function () {
   "use strict";
 
-  const ADMIN_PIN = "2468";
   const adminGate = document.getElementById("admin-gate");
   const teacherApp = document.getElementById("teacher-app");
   const adminForm = document.getElementById("admin-form");
-  const adminPin = document.getElementById("admin-pin");
+  const adminEmail = document.getElementById("admin-email");
+  const adminPassword = document.getElementById("admin-password");
   const adminStatus = document.getElementById("admin-status");
   const teacherStatus = document.getElementById("teacher-status");
 
@@ -893,19 +893,36 @@
 
 
 
-  // Admin Verification Submit
-  adminForm.addEventListener("submit", function (e) {
+  // Admin Verification Submit (Supabase Auth)
+  adminForm.addEventListener("submit", async function (e) {
     e.preventDefault();
-    if (adminPin.value.trim() !== ADMIN_PIN) {
-      setStatus(adminStatus, "관리자 PIN 번호가 일치하지 않습니다.", true);
-      adminPin.select();
-      return;
-    }
+    const email = adminEmail.value.trim();
+    const password = adminPassword.value;
 
-    adminGate.classList.add("hidden");
-    teacherApp.classList.remove("hidden");
-    loadStudents();
-    setupRealtimeSubscription();
+    setStatus(adminStatus, "로그인 중...");
+    setBusy(true);
+
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+      const { data, error } = await client.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (error) throw error;
+
+      adminGate.classList.add("hidden");
+      teacherApp.classList.remove("hidden");
+      setStatus(adminStatus, "");
+      await loadStudents();
+      setupRealtimeSubscription();
+    } catch (err) {
+      console.error("Login failed:", err);
+      setStatus(adminStatus, "로그인 실패: " + err.message, true);
+      adminPassword.select();
+    } finally {
+      setBusy(false);
+    }
   });
 
   // Tab Menu Bindings
@@ -988,16 +1005,48 @@
   formBulkStudent.addEventListener("submit", handleBulkImportSubmit);
 
   // Logout handler
-  logoutBtn.addEventListener("click", () => {
-    adminForm.reset();
-    adminPin.value = "";
-    teacherApp.classList.add("hidden");
-    adminGate.classList.remove("hidden");
-    setStatus(adminStatus, "로그아웃 되었습니다.");
-    if (realtimeChannel) {
-      realtimeChannel.unsubscribe();
-      realtimeChannel = null;
+  logoutBtn.addEventListener("click", async () => {
+    try {
+      setBusy(true);
+      const client = window.GrowthNoteSupabase.getClient();
+      await client.auth.signOut();
+      adminForm.reset();
+      teacherApp.classList.add("hidden");
+      adminGate.classList.remove("hidden");
+      setStatus(adminStatus, "로그아웃 되었습니다.");
+      if (realtimeChannel) {
+        realtimeChannel.unsubscribe();
+        realtimeChannel = null;
+      }
+    } catch (err) {
+      console.error("Logout failed:", err);
+    } finally {
+      setBusy(false);
     }
   });
 
+  // Check if session exists on load
+  async function checkAuthSession() {
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+      const { data: { session }, error } = await client.auth.getSession();
+      if (error) throw error;
+
+      if (session) {
+        adminGate.classList.add("hidden");
+        teacherApp.classList.remove("hidden");
+        await loadStudents();
+        setupRealtimeSubscription();
+      } else {
+        adminGate.classList.remove("hidden");
+        teacherApp.classList.add("hidden");
+      }
+    } catch (err) {
+      console.error("Auth session check failed:", err);
+      adminGate.classList.remove("hidden");
+      teacherApp.classList.add("hidden");
+    }
+  }
+
+  checkAuthSession();
 })();
