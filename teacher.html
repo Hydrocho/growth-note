@@ -15,8 +15,10 @@
       <section class="panel login-panel card-3d">
         <div class="brand">
           <h1 class="brand-title">관리자 모드</h1>
-          <p class="brand-subtitle">교사용 계정으로 로그인하여 대시보드에 접근합니다.</p>
+          <p class="brand-subtitle" id="admin-gate-subtitle">교사용 계정으로 로그인하여 대시보드에 접근합니다.</p>
         </div>
+        
+        <!-- 로그인 폼 -->
         <form id="admin-form" class="form-stack" style="margin-top: 24px;">
           <div class="field">
             <label for="admin-email">이메일 주소</label>
@@ -30,9 +32,38 @@
             <span class="material-symbols-outlined">lock_open</span>
             교사용 화면 열기
           </button>
-          <p class="status">계정 관리 및 운영 보안은 Supabase Auth & RLS로 강화되었습니다.</p>
-          <p id="admin-status" class="status"></p>
         </form>
+
+        <!-- 회원가입 폼 (초기 hidden) -->
+        <form id="admin-register-form" class="form-stack" style="margin-top: 24px; display: none;">
+          <div class="field">
+            <label for="admin-register-email">이메일 주소</label>
+            <input id="admin-register-email" class="input" type="email" placeholder="email@school.kr" required>
+          </div>
+          <div class="field" style="margin-top: 12px;">
+            <label for="admin-register-password">비밀번호</label>
+            <input id="admin-register-password" class="input" type="password" placeholder="비밀번호 입력 (6자리 이상)" required minlength="6">
+          </div>
+          <div class="field" style="margin-top: 12px;">
+            <label for="admin-register-password-confirm">비밀번호 확인</label>
+            <input id="admin-register-password-confirm" class="input" type="password" placeholder="비밀번호 확인" required minlength="6">
+          </div>
+          <button class="button" type="submit" style="margin-top: 18px; background: var(--primary);">
+            <span class="material-symbols-outlined">person_add</span>
+            교사용 계정 회원가입
+          </button>
+        </form>
+
+        <!-- 전환용 메뉴 링크 박스 -->
+        <div style="margin-top: 18px; text-align: center; display: flex; flex-direction: column; gap: 8px;">
+          <p id="admin-status" class="status" style="margin: 0;"></p>
+          <button id="btn-toggle-admin-register" class="button secondary" type="button" style="box-shadow: none; font-size: 13px; font-weight: 700; width: 100%;">
+            계정이 없으신가요? 회원가입하기
+          </button>
+          <button id="btn-toggle-admin-login" class="button secondary" type="button" style="box-shadow: none; font-size: 13px; font-weight: 700; width: 100%; display: none;">
+            이미 계정이 있으신가요? 로그인하기
+          </button>
+        </div>
       </section>
     </main>
 
@@ -53,6 +84,10 @@
             <button id="menu-btn-praise" class="admin-nav-item" type="button">
               <span class="material-symbols-outlined">workspace_premium</span>
               <span>칭찬 등록</span>
+            </button>
+            <button id="menu-btn-settings" class="admin-nav-item hidden" type="button">
+              <span class="material-symbols-outlined">settings_accessibility</span>
+              <span>교사 권한 관리</span>
             </button>
           </nav>
         </div>
@@ -202,6 +237,35 @@
             </section>
           </div>
         </section>
+
+        <!-- Panel 3: Teacher Role Management -->
+        <section id="panel-settings" class="panel-view hidden">
+          <div class="panel-header-row">
+            <div>
+              <h1>교사 권한 관리</h1>
+              <span class="count-badge">칭찬 등록 기능만 가능한 부교사 이메일을 지정하고 관리합니다.</span>
+            </div>
+            <div class="nav-actions">
+              <button id="btn-add-teacher-role" class="button" type="button">부교사 권한 추가</button>
+            </div>
+          </div>
+          
+          <div class="data-table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>이메일 주소</th>
+                  <th>권한 역할</th>
+                  <th>등록 일자</th>
+                  <th>관리</th>
+                </tr>
+              </thead>
+              <tbody id="teacher-roles-table-body">
+                <!-- JS 동적 로드 -->
+              </tbody>
+            </table>
+          </div>
+        </section>
       </main>
     </div>
 
@@ -325,6 +389,35 @@
               <span class="material-symbols-outlined">delete_forever</span>
               영구 삭제 실행
             </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Modal 6: Add Teacher Role -->
+    <div id="modal-teacher-role" class="modal-overlay">
+      <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2>부교사 권한 추가</h2>
+          <button id="btn-close-teacher-role" class="icon-button" type="button">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="form-teacher-role" class="form-stack">
+          <div class="field">
+            <label for="role-email">교사 이메일 주소</label>
+            <input id="role-email" class="input" type="email" placeholder="email@school.kr" required>
+          </div>
+          <div class="field" style="margin-top: 12px;">
+            <label for="role-type">권한 유형</label>
+            <select id="role-type" class="select" style="width: 100%; padding: 10px;">
+              <option value="praise_only">칭찬 등록 전용 (학생 관리 불가능)</option>
+              <option value="admin">최고 관리자 (모든 기능 가능)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+            <button id="btn-cancel-teacher-role" class="button secondary" type="button" style="box-shadow: none;">취소</button>
+            <button class="button" type="submit">등록 완료</button>
           </div>
         </form>
       </div>

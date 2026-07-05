@@ -70,7 +70,56 @@
   const deleteAllPassword = document.getElementById("delete-all-password");
   const btnDeleteAllStudents = document.getElementById("btn-delete-all-students");
 
+  // Teacher Role management elements
+  const menuBtnSettings = document.getElementById("menu-btn-settings");
+  const panelSettings = document.getElementById("panel-settings");
+  const modalTeacherRole = document.getElementById("modal-teacher-role");
+  const btnAddTeacherRole = document.getElementById("btn-add-teacher-role");
+  const btnCloseTeacherRole = document.getElementById("btn-close-teacher-role");
+  const btnCancelTeacherRole = document.getElementById("btn-cancel-teacher-role");
+  const formTeacherRole = document.getElementById("form-teacher-role");
+
+  // Admin Register Form elements
+  const adminRegisterForm = document.getElementById("admin-register-form");
+  const adminRegisterEmail = document.getElementById("admin-register-email");
+  const adminRegisterPassword = document.getElementById("admin-register-password");
+  const adminRegisterPasswordConfirm = document.getElementById("admin-register-password-confirm");
+  const btnToggleAdminRegister = document.getElementById("btn-toggle-admin-register");
+  const btnToggleAdminLogin = document.getElementById("btn-toggle-admin-login");
+  const adminGateSubtitle = document.getElementById("admin-gate-subtitle");
+
   let students = [];
+  let teacherRolesList = [];
+  let isPraiseOnly = false;
+  let isUnauthorized = false;
+
+  // 화이트리스트 교사 권한 검사 함수
+  async function checkTeacherPermissions(client, email) {
+    try {
+      const { data: roles } = await client.from("teacher_roles").select("role, email");
+      const isTableEmpty = !roles || roles.length === 0;
+
+      if (isTableEmpty) {
+        isPraiseOnly = false;
+        isUnauthorized = false;
+        return;
+      }
+
+      const userRole = roles.find(r => r.email.toLowerCase() === email.toLowerCase());
+
+      if (userRole) {
+        isPraiseOnly = userRole.role === "praise_only";
+        isUnauthorized = false;
+      } else {
+        isPraiseOnly = false;
+        isUnauthorized = true;
+      }
+    } catch (e) {
+      console.error("Permission check failed:", e);
+      isPraiseOnly = false;
+      isUnauthorized = true;
+    }
+  }
   let selectedStudentIds = new Set();
   let currentPraiseScore = 10;
   let activeTab = "students"; // "students" or "praise"
@@ -105,14 +154,18 @@
     activeTab = tabName;
     menuBtnStudents.classList.toggle("active", tabName === "students");
     menuBtnPraise.classList.toggle("active", tabName === "praise");
+    if (menuBtnSettings) menuBtnSettings.classList.toggle("active", tabName === "settings");
 
     panelStudents.classList.toggle("hidden", tabName !== "students");
     panelPraise.classList.toggle("hidden", tabName !== "praise");
+    if (panelSettings) panelSettings.classList.toggle("hidden", tabName !== "settings");
 
     if (tabName === "praise") {
       renderPraisePanel();
-    } else {
+    } else if (tabName === "students") {
       renderStudentTable();
+    } else if (tabName === "settings") {
+      loadTeacherRoles();
     }
   }
 
@@ -420,30 +473,34 @@
       const tdActions = document.createElement("td");
       tdActions.className = "actions";
 
-      // Edit Button
-      const btnEdit = document.createElement("button");
-      btnEdit.className = "button secondary";
-      btnEdit.textContent = "수정";
-      btnEdit.type = "button";
-      btnEdit.addEventListener("click", () => openEditModal(student));
-      tdActions.appendChild(btnEdit);
+      if (isPraiseOnly) {
+        tdActions.innerHTML = `<span style="color: var(--muted); font-style: italic; font-size: 12px;">권한 없음</span>`;
+      } else {
+        // Edit Button
+        const btnEdit = document.createElement("button");
+        btnEdit.className = "button secondary";
+        btnEdit.textContent = "수정";
+        btnEdit.type = "button";
+        btnEdit.addEventListener("click", () => openEditModal(student));
+        tdActions.appendChild(btnEdit);
 
-      // PIN Reset Button
-      const btnReset = document.createElement("button");
-      btnReset.className = "button secondary";
-      btnReset.textContent = "비번초기화";
-      btnReset.type = "button";
-      btnReset.disabled = !student.id;
-      btnReset.addEventListener("click", () => resetStudentPin(student));
-      tdActions.appendChild(btnReset);
+        // PIN Reset Button
+        const btnReset = document.createElement("button");
+        btnReset.className = "button secondary";
+        btnReset.textContent = "비번초기화";
+        btnReset.type = "button";
+        btnReset.disabled = !student.id;
+        btnReset.addEventListener("click", () => resetStudentPin(student));
+        tdActions.appendChild(btnReset);
 
-      // Delete Button
-      const btnDel = document.createElement("button");
-      btnDel.className = "button danger";
-      btnDel.textContent = "삭제";
-      btnDel.type = "button";
-      btnDel.addEventListener("click", () => deleteStudent(student));
-      tdActions.appendChild(btnDel);
+        // Delete Button
+        const btnDel = document.createElement("button");
+        btnDel.className = "button danger";
+        btnDel.textContent = "삭제";
+        btnDel.type = "button";
+        btnDel.addEventListener("click", () => deleteStudent(student));
+        tdActions.appendChild(btnDel);
+      }
 
       tr.appendChild(tdActions);
 
@@ -956,6 +1013,147 @@
     }
   }
 
+  // Load Teacher Roles list from Supabase
+  async function loadTeacherRoles() {
+    if (isPraiseOnly) return;
+
+    try {
+      const client = window.GrowthNoteSupabase.getClient();
+      const { data, error } = await client
+        .from("teacher_roles")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+      
+      teacherRolesList = data || [];
+      renderTeacherRolesTable();
+    } catch (err) {
+      console.error("Failed to load teacher roles:", err);
+    }
+  }
+
+  // Render Teacher Roles Table Rows
+  function renderTeacherRolesTable() {
+    const tableBody = document.getElementById("teacher-roles-table-body");
+    if (!tableBody) return;
+
+    tableBody.innerHTML = "";
+
+    if (!teacherRolesList.length) {
+      tableBody.innerHTML = `
+        <tr>
+          <td colspan="4" class="empty-state" style="text-align: center; padding: 24px; font-weight: 700; color: var(--muted);">등록된 부교사 계정이 없습니다.</td>
+        </tr>
+      `;
+      return;
+    }
+
+    teacherRolesList.forEach((role) => {
+      const tr = document.createElement("tr");
+
+      // Email
+      const tdEmail = document.createElement("td");
+      tdEmail.textContent = role.email;
+      tdEmail.style.fontWeight = "700";
+      tr.appendChild(tdEmail);
+
+      // Role Label
+      const tdRole = document.createElement("td");
+      const roleSpan = document.createElement("span");
+      roleSpan.className = "count-badge";
+      if (role.role === "praise_only") {
+        roleSpan.textContent = "칭찬 등록 전용";
+        roleSpan.style.background = "#fff3cd";
+        roleSpan.style.color = "#856404";
+        roleSpan.style.border = "1px solid #ffeeba";
+      } else if (role.role === "admin") {
+        roleSpan.textContent = "최고 관리자";
+        roleSpan.style.background = "#d4edda";
+        roleSpan.style.color = "#155724";
+        roleSpan.style.border = "1px solid #c3e6cb";
+      }
+      tdRole.appendChild(roleSpan);
+      tr.appendChild(tdRole);
+
+      // Created At
+      const tdDate = document.createElement("td");
+      tdDate.textContent = new Date(role.created_at).toLocaleDateString("ko-KR");
+      tr.appendChild(tdDate);
+
+      // Actions
+      const tdActions = document.createElement("td");
+      const btnDelete = document.createElement("button");
+      btnDelete.className = "button danger";
+      btnDelete.textContent = "권한 삭제";
+      btnDelete.type = "button";
+      btnDelete.addEventListener("click", () => deleteTeacherRole(role.email));
+      tdActions.appendChild(btnDelete);
+      tr.appendChild(tdActions);
+
+      tableBody.appendChild(tr);
+    });
+  }
+
+  // Delete Teacher Role
+  async function deleteTeacherRole(email) {
+    if (!window.confirm(`${email} 교사의 지정 권한을 삭제하시겠습니까?\n(삭제 시 해당 이메일은 최고 관리자 권한으로 환원됩니다.)`)) {
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const client = window.GrowthNoteSupabase.getClient();
+      const { error } = await client
+        .from("teacher_roles")
+        .delete()
+        .eq("email", email);
+
+      if (error) throw error;
+
+      alert("권한이 정상적으로 해제되었습니다.");
+      await loadTeacherRoles();
+    } catch (err) {
+      alert("권한 삭제 오류: " + err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Handle Add Teacher Role Submit
+  async function handleAddTeacherRoleSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById("role-email").value.trim().toLowerCase();
+    const role = document.getElementById("role-type").value;
+
+    if (!email) {
+      alert("이메일 주소는 필수입니다.");
+      return;
+    }
+
+    try {
+      setBusy(true);
+      const client = window.GrowthNoteSupabase.getClient();
+      const { error } = await client
+        .from("teacher_roles")
+        .insert({
+          email,
+          role
+        });
+
+      if (error) throw error;
+
+      document.getElementById("role-email").value = "";
+      toggleModal(modalTeacherRole, false);
+      alert(`${email} 교사가 성공적으로 등록되었습니다.`);
+      await loadTeacherRoles();
+    } catch (err) {
+      alert("권한 등록 오류: " + err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
 
   // Admin Verification Submit (Supabase Auth)
@@ -975,6 +1173,31 @@
       });
 
       if (error) throw error;
+
+      // 권한 조회 및 UI 반영
+      const userEmail = email.toLowerCase();
+      await checkTeacherPermissions(client, userEmail);
+
+      if (isUnauthorized) {
+        alert("승인되지 않은 교사 계정입니다. 최고 관리자 교사에게 승인을 요청해 주세요.");
+        await client.auth.signOut();
+        setBusy(false);
+        return;
+      }
+
+      if (isPraiseOnly) {
+        if (menuBtnStudents) menuBtnStudents.classList.add("hidden");
+        if (menuBtnSettings) menuBtnSettings.classList.add("hidden");
+        if (btnDeleteAllStudents) btnDeleteAllStudents.style.display = "none";
+        if (btnBulkImport) btnBulkImport.style.display = "none";
+        switchTab("praise");
+      } else {
+        if (menuBtnStudents) menuBtnStudents.classList.remove("hidden");
+        if (menuBtnSettings) menuBtnSettings.classList.remove("hidden");
+        if (btnDeleteAllStudents) btnDeleteAllStudents.style.display = "inline-flex";
+        if (btnBulkImport) btnBulkImport.style.display = "inline-flex";
+        switchTab("students");
+      }
 
       adminGate.classList.add("hidden");
       teacherApp.classList.remove("hidden");
@@ -1076,10 +1299,127 @@
   btnCloseDeleteAll.addEventListener("click", () => toggleModal(modalDeleteAll, false));
   btnCancelDeleteAll.addEventListener("click", () => toggleModal(modalDeleteAll, false));
 
+  // Settings Tab Navigation Binding
+  if (menuBtnSettings) {
+    menuBtnSettings.addEventListener("click", () => {
+      switchTab("settings");
+      loadTeacherRoles();
+    });
+  }
+
+  // Add Teacher Role Modal Trigger Bindings
+  if (btnAddTeacherRole) btnAddTeacherRole.addEventListener("click", () => toggleModal(modalTeacherRole, true));
+  if (btnCloseTeacherRole) btnCloseTeacherRole.addEventListener("click", () => toggleModal(modalTeacherRole, false));
+  if (btnCancelTeacherRole) btnCancelTeacherRole.addEventListener("click", () => toggleModal(modalTeacherRole, false));
+
+  // Admin Login/Register toggle event listeners
+  if (btnToggleAdminRegister) {
+    btnToggleAdminRegister.addEventListener("click", () => {
+      adminForm.style.display = "none";
+      adminRegisterForm.style.display = "block";
+      btnToggleAdminRegister.style.display = "none";
+      btnToggleAdminLogin.style.display = "block";
+      adminGateSubtitle.textContent = "교사용 이메일과 비밀번호로 신규 계정을 등록합니다.";
+      setStatus(adminStatus, "");
+    });
+  }
+
+  if (btnToggleAdminLogin) {
+    btnToggleAdminLogin.addEventListener("click", () => {
+      adminRegisterForm.style.display = "none";
+      adminForm.style.display = "block";
+      btnToggleAdminLogin.style.display = "none";
+      btnToggleAdminRegister.style.display = "block";
+      adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
+      setStatus(adminStatus, "");
+    });
+  }
+
+  // Admin Register form submission handler
+  if (adminRegisterForm) {
+    adminRegisterForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const email = adminRegisterEmail.value.trim();
+      const password = adminRegisterPassword.value;
+      const passwordConfirm = adminRegisterPasswordConfirm.value;
+
+      if (password !== passwordConfirm) {
+        setStatus(adminStatus, "비밀번호 확인이 일치하지 않습니다.", true);
+        adminRegisterPasswordConfirm.focus();
+        return;
+      }
+
+      setStatus(adminStatus, "계정 생성 중...");
+      setBusy(true);
+
+      try {
+        const client = window.GrowthNoteSupabase.getClient();
+        const { data, error } = await client.auth.signUp({
+          email,
+          password
+        });
+
+        if (error) throw error;
+
+        if (data && data.session) {
+          const userEmail = email.toLowerCase();
+          await checkTeacherPermissions(client, userEmail);
+
+          if (isUnauthorized) {
+            alert("가입은 완료되었으나 승인되지 않은 교사 계정입니다. 최고 관리자 교사에게 승인을 요청해 주세요.");
+            await client.auth.signOut();
+            adminRegisterForm.reset();
+            adminRegisterForm.style.display = "none";
+            adminForm.style.display = "block";
+            btnToggleAdminLogin.style.display = "none";
+            btnToggleAdminRegister.style.display = "block";
+            adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
+            setBusy(false);
+            return;
+          }
+
+          if (isPraiseOnly) {
+            if (menuBtnStudents) menuBtnStudents.classList.add("hidden");
+            if (menuBtnSettings) menuBtnSettings.classList.add("hidden");
+            if (btnDeleteAllStudents) btnDeleteAllStudents.style.display = "none";
+            if (btnBulkImport) btnBulkImport.style.display = "none";
+            switchTab("praise");
+          } else {
+            if (menuBtnStudents) menuBtnStudents.classList.remove("hidden");
+            if (menuBtnSettings) menuBtnSettings.classList.remove("hidden");
+            if (btnDeleteAllStudents) btnDeleteAllStudents.style.display = "inline-flex";
+            if (btnBulkImport) btnBulkImport.style.display = "inline-flex";
+            switchTab("students");
+          }
+
+          adminGate.classList.add("hidden");
+          teacherApp.classList.remove("hidden");
+          setStatus(adminStatus, "");
+          await loadStudents();
+          setupRealtimeSubscription();
+        } else {
+          // 이메일 인증 필요 문구 노출 및 초기화 후 로그인 폼 이동
+          setStatus(adminStatus, "회원가입 요청 성공! 인증 이메일을 확인하거나 로그인해 주세요.", false);
+          adminRegisterForm.reset();
+          adminRegisterForm.style.display = "none";
+          adminForm.style.display = "block";
+          btnToggleAdminLogin.style.display = "none";
+          btnToggleAdminRegister.style.display = "block";
+          adminGateSubtitle.textContent = "교사용 계정으로 로그인하여 대시보드에 접근합니다.";
+        }
+      } catch (err) {
+        setStatus(adminStatus, "회원가입 실패: " + err.message, true);
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+
   // Forms submit binding
   formEditStudent.addEventListener("submit", handleEditStudent);
   formBulkStudent.addEventListener("submit", handleBulkImportSubmit);
   formDeleteAllStudents.addEventListener("submit", handleDeleteAllStudents);
+  if (formTeacherRole) formTeacherRole.addEventListener("submit", handleAddTeacherRoleSubmit);
 
   // Logout handler
   logoutBtn.addEventListener("click", async () => {
@@ -1112,6 +1452,33 @@
       if (session) {
         adminGate.classList.add("hidden");
         teacherApp.classList.remove("hidden");
+        
+        // 권한 조회 및 UI 반영
+        const userEmail = session.user.email;
+        await checkTeacherPermissions(client, userEmail);
+
+        if (isUnauthorized) {
+          alert("승인되지 않은 교사 계정입니다. 최고 관리자 교사에게 승인을 요청해 주세요.");
+          await client.auth.signOut();
+          adminGate.classList.remove("hidden");
+          teacherApp.classList.add("hidden");
+          return;
+        }
+
+        if (isPraiseOnly) {
+          if (menuBtnStudents) menuBtnStudents.classList.add("hidden");
+          if (menuBtnSettings) menuBtnSettings.classList.add("hidden");
+          if (btnDeleteAllStudents) btnDeleteAllStudents.style.display = "none";
+          if (btnBulkImport) btnBulkImport.style.display = "none";
+          switchTab("praise");
+        } else {
+          if (menuBtnStudents) menuBtnStudents.classList.remove("hidden");
+          if (menuBtnSettings) menuBtnSettings.classList.remove("hidden");
+          if (btnDeleteAllStudents) btnDeleteAllStudents.style.display = "inline-flex";
+          if (btnBulkImport) btnBulkImport.style.display = "inline-flex";
+          switchTab("students");
+        }
+        
         await loadStudents();
         setupRealtimeSubscription();
       } else {
