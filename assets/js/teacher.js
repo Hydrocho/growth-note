@@ -88,6 +88,13 @@
   const btnToggleAdminLogin = document.getElementById("btn-toggle-admin-login");
   const adminGateSubtitle = document.getElementById("admin-gate-subtitle");
 
+  // Admin Forgot/Reset Password elements
+  const adminForgotForm = document.getElementById("admin-forgot-password-form");
+  const adminForgotEmail = document.getElementById("admin-forgot-email");
+  const btnToggleForgot = document.getElementById("btn-toggle-forgot");
+  const modalUpdatePassword = document.getElementById("modal-update-password");
+  const formUpdatePassword = document.getElementById("form-update-password");
+
   let students = [];
   let teacherRolesList = [];
 
@@ -1444,6 +1451,7 @@
   if (btnToggleAdminLogin) {
     btnToggleAdminLogin.addEventListener("click", () => {
       adminRegisterForm.style.display = "none";
+      adminForgotForm.style.display = "none";
       adminForm.style.display = "grid";
       btnToggleAdminLogin.style.display = "none";
       btnToggleAdminRegister.style.display = "block";
@@ -1617,5 +1625,92 @@
     }
   }
 
+  // 비밀번호 찾기 화면으로 전환
+  if (btnToggleForgot) {
+    btnToggleForgot.addEventListener("click", () => {
+      adminForm.style.display = "none";
+      adminRegisterForm.style.display = "none";
+      adminForgotForm.style.display = "grid";
+      btnToggleAdminRegister.style.display = "none";
+      btnToggleAdminLogin.style.display = "block";
+      adminGateSubtitle.textContent = "가입한 이메일로 비밀번호 재설정 링크를 전송합니다.";
+      setStatus(adminStatus, "");
+    });
+  }
+
+  // 비밀번호 재설정 메일 발송 submit 핸들러
+  if (adminForgotForm) {
+    adminForgotForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const email = adminForgotEmail.value.trim();
+      setStatus(adminStatus, "재설정 메일 발송 중...");
+      setBusy(true);
+
+      try {
+        const client = window.GrowthNoteSupabase.getClient();
+        const redirectToUrl = window.location.origin + window.location.pathname;
+        const { error } = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: redirectToUrl
+        });
+        if (error) throw error;
+
+        setStatus(adminStatus, "재설정 링크가 입력하신 메일로 발송되었습니다. 메일함을 확인해 주세요.", false);
+        adminForgotEmail.value = "";
+      } catch (err) {
+        setStatus(adminStatus, "메일 발송 오류: " + err.message, true);
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+
+  // URL 복구 파라미터 감지 및 모달 활성화
+  function checkPasswordRecoveryFlow() {
+    const hash = window.location.hash;
+    if (hash.includes("type=recovery") || hash.includes("recovery")) {
+      toggleModal(modalUpdatePassword, true);
+    }
+  }
+
+  // 새 비밀번호 설정 완료 처리
+  if (formUpdatePassword) {
+    formUpdatePassword.addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const password = document.getElementById("new-admin-password").value;
+      const passwordConfirm = document.getElementById("new-admin-password-confirm").value;
+
+      if (password !== passwordConfirm) {
+        alert("비밀번호 확인이 일치하지 않습니다.");
+        return;
+      }
+
+      try {
+        setBusy(true);
+        const client = window.GrowthNoteSupabase.getClient();
+        const { error } = await client.auth.updateUser({ password });
+        if (error) throw error;
+
+        alert("비밀번호가 성공적으로 재설정되었습니다. 새 비밀번호로 로그인해 주세요.");
+        toggleModal(modalUpdatePassword, false);
+        
+        // URL 해시 파라미터 제거
+        window.history.replaceState(null, null, window.location.origin + window.location.pathname);
+        
+        // 로그아웃 후 로그인 폼으로 스왑
+        await client.auth.signOut();
+        adminForgotForm.style.display = "none";
+        adminRegisterForm.style.display = "none";
+        adminForm.style.display = "grid";
+        btnToggleAdminLogin.style.display = "none";
+        btnToggleAdminRegister.style.display = "block";
+      } catch (err) {
+        alert("비밀번호 재설정 실패: " + err.message);
+      } finally {
+        setBusy(false);
+      }
+    });
+  }
+
+  checkPasswordRecoveryFlow();
   checkAuthSession();
 })();
