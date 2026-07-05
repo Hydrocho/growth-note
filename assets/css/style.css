@@ -715,6 +715,14 @@ img {
   height: 72%;
 }
 
+#avatar-grid .collection-item img,
+#avatar-grid .collection-item.unlocked img {
+  width: auto;
+  height: auto;
+  max-width: 64%;
+  max-height: 64%;
+}
+
 .empty-state {
   grid-column: 1 / -1;
   margin: 0;
