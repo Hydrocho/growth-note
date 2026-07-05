@@ -83,6 +83,7 @@
             </div>
             <div class="nav-actions">
               <button id="btn-bulk-import" class="button" type="button">학생 이름 정보 일괄 등록</button>
+              <button id="btn-delete-all-students" class="button danger" type="button" style="background: var(--danger); border-color: var(--danger);">모든 학생 데이터 삭제</button>
             </div>
           </div>
 
@@ -282,6 +283,50 @@
         <div style="display: flex; justify-content: flex-end;">
           <button id="btn-praise-result-ok" class="button" type="button" style="padding: 8px 24px;">확인</button>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal 5: Delete All Students Confirmation Modal -->
+    <div id="modal-delete-all" class="modal-overlay">
+      <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+          <h2 style="color: var(--danger); display: flex; align-items: center; gap: 8px;">
+            <span class="material-symbols-outlined">warning</span> 모든 학생 데이터 삭제
+          </h2>
+          <button id="btn-close-delete-all" class="icon-button" type="button">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+        <form id="form-delete-all-students" class="form-stack">
+          <div class="result-box" style="background: #fef2f2; border-left-color: var(--danger); color: #991b1b; font-size: 13px; margin: 16px 0; line-height: 1.6;">
+            <strong>⚠️ 강력 경고: 이 작업은 되돌릴 수 없습니다!</strong><br>
+            데이터베이스의 <strong>모든 학생 정보, 칭찬 기록, 획득한 아바타 및 마이펫 데이터</strong>가 완전히 삭제되며 복구할 수 없습니다.<br><br>
+            현재 브라우저에 등록된 학생 이름 매핑 정보도 함께 초기화됩니다.
+          </div>
+          
+          <p style="font-size: 13px; color: var(--muted); font-weight: 700; margin-bottom: 12px;">본인 확인을 위해 교사 계정의 로그인 정보를 입력해 주세요.</p>
+          
+          <!-- 브라우저 자동 완성을 교란하기 위한 보이지 않는 더미 입력 필드 -->
+          <input type="text" name="prevent_autofill_email" style="position: absolute; top: -9999px; left: -9999px;" tabindex="-1">
+          <input type="password" name="prevent_autofill_pwd" style="position: absolute; top: -9999px; left: -9999px;" tabindex="-1">
+          
+          <div class="field">
+            <label for="delete-all-email">교사 이메일 주소</label>
+            <input id="delete-all-email" class="input" type="email" placeholder="이메일 입력" required autocomplete="new-email" readonly onfocus="this.removeAttribute('readonly')">
+          </div>
+          <div class="field" style="margin-top: 12px;">
+            <label for="delete-all-password">교사 비밀번호</label>
+            <input id="delete-all-password" class="input" type="password" placeholder="비밀번호 입력" required autocomplete="new-password" readonly onfocus="this.removeAttribute('readonly')">
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+            <button id="btn-cancel-delete-all" class="button secondary" type="button" style="box-shadow: none;">취소</button>
+            <button class="button danger" type="submit" style="background: var(--danger); border-color: var(--danger); display: flex; align-items: center; gap: 6px;">
+              <span class="material-symbols-outlined">delete_forever</span>
+              영구 삭제 실행
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 

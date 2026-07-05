@@ -61,6 +61,15 @@
   const formBulkStudent = document.getElementById("form-bulk-student");
   const bulkInput = document.getElementById("bulk-input");
 
+  // Delete All Students Modal Selectors
+  const modalDeleteAll = document.getElementById("modal-delete-all");
+  const btnCloseDeleteAll = document.getElementById("btn-close-delete-all");
+  const btnCancelDeleteAll = document.getElementById("btn-cancel-delete-all");
+  const formDeleteAllStudents = document.getElementById("form-delete-all-students");
+  const deleteAllEmail = document.getElementById("delete-all-email");
+  const deleteAllPassword = document.getElementById("delete-all-password");
+  const btnDeleteAllStudents = document.getElementById("btn-delete-all-students");
+
   let students = [];
   let selectedStudentIds = new Set();
   let currentPraiseScore = 10;
@@ -891,6 +900,62 @@
     }
   }
 
+  // Delete All Students Data
+  async function handleDeleteAllStudents(e) {
+    e.preventDefault();
+    const email = deleteAllEmail.value.trim();
+    const password = deleteAllPassword.value;
+
+    try {
+      setBusy(true);
+      const client = window.GrowthNoteSupabase.getClient();
+      
+      // 1단계: 현재 로그인된 교사의 이메일 정보와 비교
+      const { data: { user }, error: userError } = await client.auth.getUser();
+      if (userError || !user) {
+        throw new Error("교사 세션 정보를 가져올 수 없습니다. 다시 로그인해 주세요.");
+      }
+
+      if (user.email !== email) {
+        alert("현재 로그인된 교사 계정의 이메일 주소와 일치하지 않습니다.");
+        deleteAllEmail.focus();
+        return;
+      }
+
+      // 2단계: 패스워드 재검증 (로그인 시도)
+      const { error: authError } = await client.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (authError) {
+        throw new Error("비밀번호가 올바르지 않거나 인증에 실패했습니다.");
+      }
+
+      // 3단계: 모든 학생 데이터 DB에서 삭제 (Cascade 제약으로 하위 테이블도 전체 삭제됨)
+      const { error: deleteError } = await client
+        .from("students")
+        .delete()
+        .neq("id", "00000000-0000-0000-0000-000000000000"); // Supabase의 일괄삭제 안전장치 우회
+
+      if (deleteError) throw deleteError;
+
+      // 4단계: 로컬 컴퓨터에 저장되어 있는 이름 매핑 스토리지 제거
+      localStorage.removeItem("growth-note-local-names");
+
+      toggleModal(modalDeleteAll, false);
+      alert("모든 학생 데이터 및 로컬 이름 데이터가 완벽하게 삭제되었습니다.");
+      
+      // 학생 목록 갱신
+      await loadStudents();
+
+    } catch (err) {
+      alert("오류 발생: " + err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
 
 
   // Admin Verification Submit (Supabase Auth)
@@ -1000,9 +1065,21 @@
   btnClosePraiseResult.addEventListener("click", () => toggleModal(modalPraiseResult, false));
   btnPraiseResultOk.addEventListener("click", () => toggleModal(modalPraiseResult, false));
 
+  // Delete All Modal Triggers
+  btnDeleteAllStudents.addEventListener("click", () => {
+    deleteAllEmail.setAttribute("readonly", "readonly");
+    deleteAllPassword.setAttribute("readonly", "readonly");
+    deleteAllEmail.value = "";
+    deleteAllPassword.value = "";
+    toggleModal(modalDeleteAll, true);
+  });
+  btnCloseDeleteAll.addEventListener("click", () => toggleModal(modalDeleteAll, false));
+  btnCancelDeleteAll.addEventListener("click", () => toggleModal(modalDeleteAll, false));
+
   // Forms submit binding
   formEditStudent.addEventListener("submit", handleEditStudent);
   formBulkStudent.addEventListener("submit", handleBulkImportSubmit);
+  formDeleteAllStudents.addEventListener("submit", handleDeleteAllStudents);
 
   // Logout handler
   logoutBtn.addEventListener("click", async () => {
