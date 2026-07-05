@@ -41,4 +41,48 @@ assert.strictEqual(
   "public/img/myPet_IMG/myPet_012.png"
 );
 
+const layout = global.GrowthNoteRules.getAvatarPetLayout({
+  avatarX: -45,
+  avatarY: 10,
+  avatarSize: 140,
+  petX: 40,
+  petY: 10,
+  petSize: 80,
+  receiptPetX: 3,
+  receiptPetY: -4
+});
+assert.strictEqual(layout.avatarImage.left, "123px");
+assert.strictEqual(layout.avatarImage.bottom, "-10px");
+assert.strictEqual(layout.avatarImage.height, "140px");
+assert.strictEqual(layout.petImage.left, "208px");
+assert.strictEqual(layout.petImage.bottom, "-10px");
+assert.strictEqual(layout.petImage.transform, "translate(3px, -4px)");
+assert.strictEqual(layout.petImage.height, "53.33333333333333px");
+assert.strictEqual(layout.petImage.width, "auto");
+
+global.ReceiptCore = {
+  LAYOUT: {
+    PET: { x: 11, y: -7 }
+  }
+};
+global.ReceiptMedia = {
+  normalizeImageSize(size) {
+    assert.deepStrictEqual(size, { width: 64 * (2 / 3), height: 64 * (2 / 3) });
+    return { width: 48 * (2 / 3), height: 52 * (2 / 3) };
+  }
+};
+
+const receiptLayout = global.GrowthNoteRules.getAvatarPetLayout({
+  petX: 1,
+  petY: 2,
+  petSize: 64,
+  receiptPetX: 3,
+  receiptPetY: 4
+});
+assert.strictEqual(receiptLayout.petImage.left, "169px");
+assert.strictEqual(receiptLayout.petImage.bottom, "-2px");
+assert.strictEqual(receiptLayout.petImage.transform, "translate(11px, -7px)");
+assert.strictEqual(receiptLayout.petImage.width, "32px");
+assert.strictEqual(receiptLayout.petImage.height, "34.666666666666664px");
+
 console.log("rules.test.js passed");

@@ -286,10 +286,10 @@
     // getAvatarPetLayout 함수를 불러와서 아바타와 펫의 크기/위치 정밀 대입
     const layoutSettings = {
       avatarY: 10,
-      avatarX: -45,     // 아바타 약간 왼쪽 배치
+      avatarX: -80,     // 아바타와 마이펫 묶음을 화면 중앙에 배치
       avatarSize: 140,  // 아바타 크기
       petY: 10,
-      petX: 40,        // 마이펫 약간 오른쪽 배치
+      petX: 0,         // 아바타와 함께 하나의 객체처럼 보이도록 중앙 보정
       receiptPetX: 0,
       receiptPetY: 0
     };

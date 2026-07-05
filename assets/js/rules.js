@@ -132,6 +132,50 @@
     return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
   }
 
+  function cssSize(value) {
+    return typeof value === "number" ? `${value}px` : value;
+  }
+
+  function getReceiptPetOffset(settings) {
+    const receiptPet = root.ReceiptCore &&
+      root.ReceiptCore.LAYOUT &&
+      root.ReceiptCore.LAYOUT.PET;
+
+    if (receiptPet) {
+      return {
+        x: typeof receiptPet.x === "number" ? receiptPet.x : 0,
+        y: typeof receiptPet.y === "number" ? receiptPet.y : 0
+      };
+    }
+
+    return {
+      x: typeof settings.receiptPetX === "number" ? settings.receiptPetX : 0,
+      y: typeof settings.receiptPetY === "number" ? settings.receiptPetY : 0
+    };
+  }
+
+  function getNormalizedPetSize(petSize) {
+    const fallback = { width: "auto", height: `${petSize}px` };
+    const media = root.ReceiptMedia;
+    if (!media || typeof media.normalizeImageSize !== "function") {
+      return fallback;
+    }
+
+    try {
+      const normalized = media.normalizeImageSize({ width: petSize, height: petSize });
+      if (normalized && typeof normalized === "object") {
+        return {
+          width: cssSize(normalized.width || fallback.width),
+          height: cssSize(normalized.height || fallback.height)
+        };
+      }
+    } catch (error) {
+      // Fall back to local sizing when the shared receipt helper is unavailable or incompatible.
+    }
+
+    return fallback;
+  }
+
   /**
    * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    * [강력 경고] 절대로 이 함수의 반환값(위치, 크기, 정렬 등 레이아웃 수치)을 변경하지 마십시오!
@@ -149,11 +193,10 @@
     const avatarSize = s.avatarSize || 120;
     const petY = s.petY || 0;
     const petX = s.petX || 0;
-    const petSize = s.petSize || 80;
+    const petSize = (s.petSize || 80) * (2 / 3);
 
-    // ReceiptCore.LAYOUT.PET 의 기본 x, y 오프셋 백업값
-    const receiptPetX = typeof s.receiptPetX === "number" ? s.receiptPetX : 0;
-    const receiptPetY = typeof s.receiptPetY === "number" ? s.receiptPetY : 0;
+    const receiptPetOffset = getReceiptPetOffset(s);
+    const normalizedPetSize = getNormalizedPetSize(petSize);
 
     return {
       radarChart: {
@@ -178,9 +221,9 @@
         position: "absolute",
         bottom: `${-petY}px`,
         left: `${168 + petX}px`,
-        transform: `translate(${receiptPetX}px, ${receiptPetY}px)`,
-        width: "auto",
-        height: "auto",
+        transform: `translate(${receiptPetOffset.x}px, ${receiptPetOffset.y}px)`,
+        width: normalizedPetSize.width,
+        height: normalizedPetSize.height,
         objectFit: "contain",
         zIndex: 30
       }
