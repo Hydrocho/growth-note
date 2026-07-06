@@ -683,14 +683,16 @@ img {
 
 .collection-item {
   width: 100%;
-  aspect-ratio: 1 / 1; /* 가로세로 1:1 정사각형 비율 유지 */
+  aspect-ratio: 1 / 1;
+  /* 가로세로 1:1 정사각형 비율 유지 */
   display: inline-flex;
   align-items: center;
   justify-content: center;
   border: 1px solid #f1f5f9;
   border-radius: 8px;
   background: var(--bg);
-  padding: 10px; /* 패딩을 10px로 상향하여 모바일 여백 확보 */
+  padding: 10px;
+  /* 패딩을 10px로 상향하여 모바일 여백 확보 */
   box-shadow: var(--shadow);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   overflow: hidden;
@@ -705,7 +707,8 @@ img {
 .collection-item img {
   width: 100%;
   height: 100%;
-  object-fit: contain; /* 비율을 유지하면서 박스 크기에 맞춰 피팅 */
+  object-fit: contain;
+  /* 비율을 유지하면서 박스 크기에 맞춰 피팅 */
 }
 
 /* 획득한 컬러 아바타/마이펫은 이미지 자체의 여백이 없어 비대해 보이므로, */
@@ -721,7 +724,7 @@ img {
   height: auto;
   max-width: none;
   max-height: none;
-  transform: scale(0.3);
+  transform: scale(0.2);
   transform-origin: center;
 }
 
@@ -1040,7 +1043,7 @@ img {
   z-index: 1;
 }
 
-.reward-draw-box.opened + .reward-draw-result {
+.reward-draw-box.opened+.reward-draw-result {
   animation: pet-reveal 620ms ease-out both;
 }
 
@@ -1856,18 +1859,22 @@ img {
 .collection-item.unlocked.tier-common {
   border-color: #cbd5e1;
 }
+
 .collection-item.unlocked.tier-rare {
   border-color: #3b82f6;
   box-shadow: 0 0 8px rgba(59, 130, 246, 0.22);
 }
+
 .collection-item.unlocked.tier-epic {
   border-color: #a855f7;
   box-shadow: 0 0 10px rgba(168, 85, 247, 0.32);
 }
+
 .collection-item.unlocked.tier-legendary {
   border-color: #eab308;
   box-shadow: 0 0 12px rgba(234, 179, 8, 0.42);
 }
+
 .collection-item.unlocked.tier-mythic {
   border-color: #ef4444;
   box-shadow: 0 0 16px rgba(239, 68, 68, 0.62);
@@ -1878,6 +1885,7 @@ img {
   0% {
     box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
   }
+
   100% {
     box-shadow: 0 0 18px rgba(239, 68, 68, 0.8);
   }
