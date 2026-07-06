@@ -11,7 +11,7 @@ for (const copy of [
   "height: auto",
   "max-width: none",
   "max-height: none",
-  "transform: scale(0.3)",
+  "transform: scale(0.1)",
   "transform-origin: center"
 ]) {
   assert(css.includes(copy), `avatar collection images should use uniform source-ratio scaling: ${copy}`);
