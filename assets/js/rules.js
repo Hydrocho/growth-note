@@ -208,23 +208,21 @@
         zIndex: 50
       },
       avatarImage: {
-        position: "absolute",
-        bottom: `${-avatarY}px`,
-        left: `calc(50% + ${avatarX}px)`,
+        position: "relative",
         height: `${avatarSize}px`,
         width: "auto",
         objectFit: "contain",
-        transform: "translateX(-50%)",
+        marginBottom: `${avatarY}px`,
         zIndex: 20
       },
       petImage: {
-        position: "absolute",
-        bottom: `${-petY}px`,
-        left: `calc(50% + ${petX}px)`,
-        transform: `translateX(-50%) translate(${receiptPetOffset.x}px, ${receiptPetOffset.y}px)`,
+        position: "relative",
         width: normalizedPetSize.width,
         height: normalizedPetSize.height,
         objectFit: "contain",
+        marginBottom: `${petY}px`,
+        marginLeft: "-10px",
+        transform: `translate(${receiptPetOffset.x}px, ${receiptPetOffset.y}px)`,
         zIndex: 30
       }
     };
