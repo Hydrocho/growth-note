@@ -201,7 +201,7 @@
       radarChart: {
         position: "absolute",
         top: `${115 + chartY}px`,
-        left: `${168 + chartX}px`,
+        left: `calc(50% + ${chartX}px)`,
         width: `${chartSize}px`,
         height: `${chartSize}px`,
         transform: "translate(-50%, -50%)",
@@ -210,17 +210,18 @@
       avatarImage: {
         position: "absolute",
         bottom: `${-avatarY}px`,
-        left: `${168 + avatarX}px`,
+        left: `calc(50% + ${avatarX}px)`,
         height: `${avatarSize}px`,
         width: "auto",
         objectFit: "contain",
+        transform: "translateX(-50%)",
         zIndex: 20
       },
       petImage: {
         position: "absolute",
         bottom: `${-petY}px`,
-        left: `${168 + petX}px`,
-        transform: `translate(${receiptPetOffset.x}px, ${receiptPetOffset.y}px)`,
+        left: `calc(50% + ${petX}px)`,
+        transform: `translateX(-50%) translate(${receiptPetOffset.x}px, ${receiptPetOffset.y}px)`,
         width: normalizedPetSize.width,
         height: normalizedPetSize.height,
         objectFit: "contain",
