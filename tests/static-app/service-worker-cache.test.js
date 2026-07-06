@@ -15,7 +15,7 @@ for (const copy of [
   'destination === "style"',
   'destination === "script"',
   "fetch(event.request)",
-  "cache.put(event.request, responseToCache)",
+  "cache.put(request, responseToCache)",
   "return cachedResponse"
 ]) {
   assert(sw.includes(copy), `service worker should use network-first for app shell updates: ${copy}`);
