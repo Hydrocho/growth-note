@@ -667,6 +667,8 @@ img {
 .collection-grid {
   display: none;
   gap: 12px;
+  justify-content: center;
+  justify-items: center;
 }
 
 .collection-grid.active {
