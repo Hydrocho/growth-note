@@ -123,7 +123,7 @@
 
   // 대표 아바타 설정
   function setDefaultAvatar(gender, avatarId) {
-    const imageSrc = `public/img/avatarLibrary_IMG/avatarLibrary_${gender}_${avatarId}.png`;
+    const imageSrc = `assets/img/avatarLibrary_IMG/avatarLibrary_${gender}_${avatarId}.png`;
     showRepConfirmModal("선택한 아바타를 대표 프로필 아바타로 설정하시겠습니까?", imageSrc, avatarId, async () => {
       try {
         setStatus("대표 아바타를 변경하고 있습니다...");
@@ -147,7 +147,7 @@
 
   // 대표 마이펫 설정
   function setDefaultPet(petId) {
-    const imageSrc = `public/img/myPet_IMG/myPet_${petId}.png`;
+    const imageSrc = `assets/img/myPet_IMG/myPet_${petId}.png`;
     showRepConfirmModal("선택한 마이펫을 함께하는 대표 마이펫으로 설정하시겠습니까?", imageSrc, petId, async () => {
       try {
         setStatus("대표 마이펫을 변경하고 있습니다...");
@@ -191,13 +191,13 @@
         
         const img = document.createElement("img");
         if (isUnlocked) {
-          img.src = `public/img/avatarLibrary_IMG/avatarLibrary_${currentGender}_${avatarId}.png`;
+          img.src = `assets/img/avatarLibrary_IMG/avatarLibrary_${currentGender}_${avatarId}.png`;
           img.alt = `아바타 ${avatarId}`;
           cell.style.cursor = "pointer";
           cell.title = `대표 아바타로 설정 (${tier.name})`;
           cell.addEventListener("click", () => setDefaultAvatar(currentGender, avatarId));
         } else {
-          img.src = `public/img/avatarLibrary_IMG/avatarLibraryShadow_${currentGender}_${avatarId}.png`;
+          img.src = `assets/img/avatarLibrary_IMG/avatarLibraryShadow_${currentGender}_${avatarId}.png`;
           img.alt = "미획득 아바타";
           cell.style.opacity = "0.25"; // 미획득은 흐릿하고 어둡게 처리
         }
@@ -219,13 +219,13 @@
 
         const img = document.createElement("img");
         if (isUnlocked) {
-          img.src = `public/img/myPet_IMG/myPet_${petId}.png`;
+          img.src = `assets/img/myPet_IMG/myPet_${petId}.png`;
           img.alt = `마이펫 ${petId}`;
           cell.style.cursor = "pointer";
           cell.title = `대표 마이펫으로 설정 (${tier.name})`;
           cell.addEventListener("click", () => setDefaultPet(petId));
         } else {
-          img.src = `public/img/myPet_IMG/myPetShadow_${petId}.png`;
+          img.src = `assets/img/myPet_IMG/myPetShadow_${petId}.png`;
           img.alt = "미획득 마이펫";
           cell.style.opacity = "0.25";
         }

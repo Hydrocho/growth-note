@@ -9,7 +9,7 @@ This folder is the standalone HTML/CSS/JavaScript version of the praise reward a
 - `teacher.html`: teacher praise assignment
 - `assets/js/supabase-config.example.js`: example config only
 - `supabase-new-project-schema.sql`: schema for a new Supabase project
-- `public/img`: required avatar and My Pet image assets
+- `assets/img`: required avatar and My Pet image assets
 
 ## Supabase Setup
 

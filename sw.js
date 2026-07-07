@@ -13,8 +13,8 @@ const ASSETS_TO_CACHE = [
   "./assets/js/supabase-config.js",
   "./assets/js/supabase-client.js",
   "./manifest.json",
-  "./public/img/icon-192.png",
-  "./public/img/icon-512.png"
+  "./assets/img/icon-192.png",
+  "./assets/img/icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {

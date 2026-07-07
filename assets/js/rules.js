@@ -103,19 +103,19 @@
   function avatarImagePath(avatar) {
     const gender = avatar && avatar.gender ? avatar.gender : "1";
     const avatarId = avatar && avatar.avatar_id ? avatar.avatar_id : "001";
-    return `public/img/avatarLibrary_IMG/avatarLibrary_${gender}_${avatarId}.png`;
+    return `assets/img/avatarLibrary_IMG/avatarLibrary_${gender}_${avatarId}.png`;
   }
 
   function levelAvatarImagePath(student) {
     const current = student && student.current_avatar_num ? student.current_avatar_num : "1_001";
     const parts = current.split("_");
     const gender = parts[0] === "2" ? "2" : "1";
-    return `public/img/avatarLibrary_IMG/avatarLibrary_${gender}_001.png`;
+    return `assets/img/avatarLibrary_IMG/avatarLibrary_${gender}_001.png`;
   }
 
   function petImagePath(pet) {
     const petId = pet && pet.pet_id ? pet.pet_id : "000";
-    return `public/img/myPet_IMG/myPet_${petId}.png`;
+    return `assets/img/myPet_IMG/myPet_${petId}.png`;
   }
 
   async function hashPin(pin) {
